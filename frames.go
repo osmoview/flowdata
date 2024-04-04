@@ -27,6 +27,30 @@ type Frame struct {
 	// Format string
 }
 
+func NewFrameBytes(data []byte) (*Frame, error) {
+	// TODO: support different image types
+	info, err := DecodeJPEGInfo(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Frame{
+		Time:  time.Now(),
+		Bytes: data,
+		Info:  info,
+	}, nil
+}
+
+func NewFrameImage(img image.Image) (*Frame, error) {
+	b := img.Bounds().Max
+
+	return &Frame{
+		Time:  time.Now(),
+		Image: img,
+		Info:  image.Config{ColorModel: img.ColorModel(), Width: b.X, Height: b.Y},
+	}, nil
+}
+
 // GetImage returns image.Image
 func (f *Frame) GetImage() image.Image {
 	if f.Image != nil {
@@ -43,6 +67,11 @@ func (f *Frame) GetTime() time.Time {
 
 // GetSize returns image resolution
 func (f *Frame) GetSize() (w, h int) {
+	if f.Image != nil {
+		b := f.Image.Bounds().Max
+		return b.X, b.Y
+	}
+
 	return f.Info.Width, f.Info.Height
 }
 

@@ -18,3 +18,7 @@ func EncodeJPEG(img image.Image) ([]byte, error) {
 func DecodeJPEG(data []byte) (image.Image, error) {
 	return jpeg.Decode(bytes.NewReader(data))
 }
+
+func DecodeJPEGInfo(data []byte) (image.Config, error) {
+	return jpeg.DecodeConfig(bytes.NewReader(data))
+}
