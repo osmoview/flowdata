@@ -1,13 +1,95 @@
 package flowdata
 
+import "image/color"
+
+type AnchorType int
+
+const (
+	Center AnchorType = iota
+	Bottom
+	Top
+	AllPoints
+)
+
 type Line struct {
-	Name   string    `json:"name"`
-	Points []float64 `json:"points"`
-	Color  string    `json:"color"`
+	// name region
+	Name string `json:"name"`
+	// array points
+	A [2]float64
+	// array points
+	B [2]float64
+	// region color
+	Color color.Color `json:"color"`
 }
 
-func NewLine(name string, points []float64, color string) *Line {
-	return &Line{name, points, color}
+// NewLine init a new line
+func NewLine(name string, a, b [2]float64, color color.Color) *Line {
+	return &Line{name, a, b, color}
 }
 
-func (l *Line) CheckEntranceInRegion() {}
+// CheckObjectLineCrossing checks whether objects intersect a line and determines the direction of intersection
+func (l *Line) CheckObjectLineCrossing(objects []*Object, anchor AnchorType) (crossedOneWay []*Object, crossedAnotherWay []*Object, notCrossed []*Object) {
+	crossedOneWay = []*Object{}
+	crossedAnotherWay = []*Object{}
+	notCrossed = []*Object{}
+
+	for _, object := range objects {
+		var point [2]float64
+
+		switch anchor {
+		case Center:
+			pointX, pointY := l.calculateBBoxCenter(object.BBox)
+
+			point = [2]float64{pointX, pointY}
+		case Bottom:
+			point = [2]float64{object.BBox[0] + object.BBox[2]/2, object.BBox[1] + object.BBox[3]}
+		case Top:
+			point = [2]float64{object.BBox[0] + object.BBox[2]/2, object.BBox[1]}
+		case AllPoints:
+			// TODO: temporarily logics
+			pointX, pointY := l.calculateBBoxCenter(object.BBox)
+
+			point = [2]float64{pointX, pointY}
+		}
+
+		if isCrossing, direction := l.isCrossingLine(point); isCrossing {
+			if direction > 0 {
+				crossedOneWay = append(crossedOneWay, object)
+			}
+			if direction < 0 {
+				crossedAnotherWay = append(crossedAnotherWay, object)
+			}
+		} else {
+			notCrossed = append(notCrossed, object)
+		}
+	}
+
+	return
+}
+
+// isCrossingLine determines whether a point intersects a line
+// returns the direction of intersection
+func (l *Line) isCrossingLine(point [2]float64) (bool, int) {
+	// Calculate the cross product to determine the position of a point relative to a line
+	d := (point[0]-l.A[0])*(l.B[1]-l.A[1]) - (point[1]-l.A[1])*(l.B[0]-l.A[0])
+
+	if d > 0 {
+		// one way crossing
+		return true, 1
+	} else if d < 0 {
+		// crossing in the other direction
+		return true, -1
+	}
+
+	// does not cross
+	return false, 0
+}
+
+// calculateBBoxCenter accepts a bbox in the format [x, y, w, h]
+// returns the coordinates of the center X, Y of the bbox
+func (l *Line) calculateBBoxCenter(bbox [4]float64) (centerX float64, centerY float64) {
+	centerX = bbox[0] + bbox[2]/divider
+	centerY = bbox[1] + bbox[3]/divider
+
+	return
+}
