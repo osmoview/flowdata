@@ -46,10 +46,26 @@ func (l *Line) CheckObjectLineCrossing(objects []*Object, anchor AnchorType) (cr
 		case Top:
 			point = [2]float64{object.BBox[0] + object.BBox[2]/2, object.BBox[1]}
 		case AllPoints:
-			// TODO: temporarily logics
-			pointX, pointY := l.calculateBBoxCenter(object.BBox)
+			crossed := false
+			directionSum := 0
 
-			point = [2]float64{pointX, pointY}
+			for _, p := range object.Area {
+				if isCrossing, direction := l.isCrossingLine(p); isCrossing {
+					crossed = true
+					directionSum += direction
+				}
+			}
+
+			if crossed {
+				if directionSum > 0 {
+					crossedOneWay = append(crossedOneWay, object)
+				}
+				if directionSum < 0 {
+					crossedAnotherWay = append(crossedAnotherWay, object)
+				}
+			} else {
+				notCrossed = append(notCrossed, object)
+			}
 		}
 
 		if isCrossing, direction := l.isCrossingLine(point); isCrossing {
