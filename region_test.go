@@ -207,9 +207,7 @@ func TestCalculateBBoxCenter(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			nr := NewRegion("test", [4]float64{}, color.RGBA{})
-
-			centerX, centerY := nr.calculateBBoxCenter(test.input)
+			centerX, centerY := CalculateBBoxCenter(test.input)
 
 			switch test.name {
 			case "ok":

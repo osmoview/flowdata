@@ -46,14 +46,14 @@ func (r *Region) CheckEntranceInRegion(objects []*Object) (in []*Object, out []*
 // bBoxInRegion accepts bbox in the format [x, y, w, h] and points in the format [x1, x2, y1, y2]
 // returns true if bbox is inside the area and false otherwise
 func (r *Region) bBoxInRegion(bbox [4]float64, points [4]float64) bool {
-	centerX, centerY := r.calculateBBoxCenter(bbox)
+	centerX, centerY := CalculateBBoxCenter(bbox)
 
 	return centerX >= points[0] && centerX <= points[1] && centerY >= points[2] && centerY <= points[3]
 }
 
 // calculateBBoxCenter accepts a bbox in the format [x, y, w, h]
 // returns the coordinates of the center X, Y of the bbox
-func (r *Region) calculateBBoxCenter(bbox [4]float64) (centerX float64, centerY float64) {
+func CalculateBBoxCenter(bbox [4]float64) (centerX float64, centerY float64) {
 	centerX = bbox[0] + bbox[2]/divider
 	centerY = bbox[1] + bbox[3]/divider
 

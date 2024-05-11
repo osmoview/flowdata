@@ -38,7 +38,7 @@ func (l *Line) CheckObjectLineCrossing(objects []*Object, anchor AnchorType) (cr
 
 		switch anchor {
 		case Center:
-			pointX, pointY := l.calculateBBoxCenter(object.BBox)
+			pointX, pointY := CalculateBBoxCenter(object.BBox)
 
 			point = [2]float64{pointX, pointY}
 		case Bottom:
@@ -99,13 +99,4 @@ func (l *Line) isCrossingLine(point [2]float64) (bool, int) {
 
 	// does not cross
 	return false, 0
-}
-
-// calculateBBoxCenter accepts a bbox in the format [x, y, w, h]
-// returns the coordinates of the center X, Y of the bbox
-func (l *Line) calculateBBoxCenter(bbox [4]float64) (centerX float64, centerY float64) {
-	centerX = bbox[0] + bbox[2]/divider
-	centerY = bbox[1] + bbox[3]/divider
-
-	return
 }
