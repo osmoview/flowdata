@@ -1,6 +1,7 @@
 package flowdata
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"time"
@@ -49,6 +50,11 @@ func NewFrameImage(img image.Image) (*Frame, error) {
 		Image: img,
 		Info:  image.Config{ColorModel: img.ColorModel(), Width: b.X, Height: b.Y},
 	}, nil
+}
+
+func (f *Frame) String() string {
+	w, h := f.GetSize()
+	return fmt.Sprintf("%dx%d", w, h)
 }
 
 // GetImage returns image.Image
