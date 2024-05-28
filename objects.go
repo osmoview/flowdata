@@ -3,14 +3,14 @@ package flowdata
 import "fmt"
 
 type Object struct {
-	ID   string       `json:"id,omitmepty"`
+	ID   string       `json:"id,omitempty"`
 	Type string       `json:"type"`
-	Name string       `json:"name,omitmepty"`
-	Prob float64      `json:"prob,omitmepty"`
-	BBox [4]float64   `json:"bbox,omitmepty"`
-	Area [][2]float64 `json:"area,omitmepty"`
+	Name string       `json:"name,omitempty"`
+	Prob float64      `json:"prob,omitempty"`
+	BBox [4]float64   `json:"bbox,omitempty"`
+	Area [][2]float64 `json:"area,omitempty"`
 
-	Data map[string]interface{} `json:"data,omitmepty"`
+	Data map[string]interface{} `json:"data,omitempty"`
 
 	Keypoints Keypoints `json:"keypoints,omitempty"`
 }
