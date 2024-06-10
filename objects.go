@@ -16,7 +16,7 @@ type Object struct {
 	Keypoints Keypoints `json:"keypoints,omitempty"`
 }
 
-func (o Object) String() string {
+func (o *Object) String() string {
 	if o.Name != "" {
 		return fmt.Sprintf("%s:%s", o.Type, o.Name)
 	}
@@ -25,8 +25,25 @@ func (o Object) String() string {
 }
 
 // IsValid check is object is valid, `type` is required field
-func (o Object) IsValid() bool {
+func (o *Object) IsValid() bool {
 	return o.Type != ""
+}
+
+// Copy creates and returns a copy of the Object
+func (o *Object) Copy() *Object {
+	newObj := *o
+
+	newObj.Area = make([][2]float64, len(o.Area))
+	copy(newObj.Area, o.Area)
+
+	if o.Data != nil {
+		newObj.Data = make(map[string]interface{})
+		for k, v := range o.Data {
+			newObj.Data[k] = v
+		}
+	}
+
+	return &newObj
 }
 
 // Keypoints is a slice on keypoints

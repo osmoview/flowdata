@@ -16,6 +16,7 @@ func NewRegion(name string, points [][2]float64, color string) *Region {
 	}
 }
 
+// BBox get a rectangle by points
 func (r *Region) BBox() (minX, minY, maxX, maxY float64) {
 	if len(r.Points) == 0 {
 		return 0, 0, 0, 0
