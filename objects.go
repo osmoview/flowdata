@@ -46,6 +46,16 @@ func (o *Object) Copy() *Object {
 	return &newObj
 }
 
+// IsZeroBBox check is empty bbox
+func (o *Object) IsZeroBBox() bool {
+	for _, v := range o.BBox {
+		if v != 0 {
+			return false
+		}
+	}
+	return true
+}
+
 // Keypoints is a slice on keypoints
 type Keypoints []Keypoint
 
