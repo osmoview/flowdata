@@ -43,3 +43,13 @@ func (r *Region) BBox() [4]float64 {
 
 	return [4]float64{minX, minY, width, height}
 }
+
+// IsZeroBBox check is empty region bbox
+func (r *Region) IsZeroBBox(bbox [4]float64) bool {
+	for _, v := range bbox {
+		if v != 0 {
+			return false
+		}
+	}
+	return true
+}
