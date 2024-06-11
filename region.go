@@ -16,29 +16,32 @@ func NewRegion(name string, points [][2]float64, color string) *Region {
 	}
 }
 
-// BBox get a rectangle by points
-func (r *Region) BBox() (minX, minY, maxX, maxY float64) {
+// BBox get a rectangle by points format: [x,y,w,h]
+func (r *Region) BBox() [4]float64 {
 	if len(r.Points) == 0 {
-		return 0, 0, 0, 0
+		return [4]float64{0, 0, 0, 0}
 	}
 
-	minX, minY = math.MaxFloat64, math.MaxFloat64
-	maxX, maxY = math.SmallestNonzeroFloat64, math.SmallestNonzeroFloat64
+	minX, minY := math.MaxFloat64, math.MaxFloat64
+	maxX, maxY := -math.SmallestNonzeroFloat64, -math.SmallestNonzeroFloat64
 
 	for _, point := range r.Points {
 		if point[0] < minX {
 			minX = point[0]
 		}
-		if point[0] > maxX {
-			maxX = point[0]
-		}
 		if point[1] < minY {
 			minY = point[1]
+		}
+		if point[0] > maxX {
+			maxX = point[0]
 		}
 		if point[1] > maxY {
 			maxY = point[1]
 		}
 	}
 
-	return minX, minY, maxX, maxY
+	width := maxX - minX
+	height := maxY - minY
+
+	return [4]float64{minX, minY, width, height}
 }
