@@ -1,7 +1,7 @@
 package flowdata
 
 type Region struct {
-	Name   string       `json:"name,omitempty"`
+	Name   string       `json:"name"`
 	Points [][2]float64 `json:"points"`
 	Color  string       `json:"color,omitempty"`
 }
