@@ -1,7 +1,5 @@
 package flowdata
 
-import "math"
-
 type Region struct {
 	Name   string       `json:"name,omitempty"`
 	Points [][2]float64 `json:"points"`
@@ -22,8 +20,8 @@ func (r *Region) BBox() [4]float64 {
 		return [4]float64{0, 0, 0, 0}
 	}
 
-	minX, minY := math.MaxFloat64, math.MaxFloat64
-	maxX, maxY := -math.SmallestNonzeroFloat64, -math.SmallestNonzeroFloat64
+	minX, minY := 1.0, 1.0
+	maxX, maxY := 0.0, 0.0
 
 	for _, point := range r.Points {
 		if point[0] < minX {
