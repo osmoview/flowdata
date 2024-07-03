@@ -40,8 +40,11 @@ type FormField struct {
 	// type of field, like: text, number, etc
 	Type string `yaml:"type,omitempty" json:"type,omitempty"`
 
-	// default value
+	// current value
 	Value any `yaml:"value,omitempty" json:"value,omitempty"`
+
+	// default value
+	Default any `yaml:"default,omitempty" json:"default,omitempty"`
 
 	// map of localization labels, for example: {"en":"Threshold", "es":"Umbral", ...}, if it is null, then recommend use name as label
 	Label L10n `yaml:"l10n,omitempty" json:"l10n,omitempty"`
@@ -66,12 +69,16 @@ type FormFieldOption struct {
 
 type L10n map[string]string
 
+// Get should extract from the l10n map required value by key
+// if not exist, try to get default language, if not then returns a key
 func (m L10n) Get(key string) string {
-	v, ok := m[key]
-	if ok {
+	if v, ok := m[key]; ok {
 		return v
 	}
 
-	v, _ = m["en"]
-	return v
+	if v, ok := m[DefaultLangKey]; ok {
+		return v
+	}
+
+	return key
 }
