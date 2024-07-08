@@ -40,16 +40,13 @@ type FormField struct {
 	// type of field, like: text, number, etc
 	Type string `yaml:"type,omitempty" json:"type,omitempty"`
 
-	// current value
-	Value any `yaml:"value,omitempty" json:"value,omitempty"`
-
 	// default value
 	Default any `yaml:"default,omitempty" json:"default,omitempty"`
 
 	// map of localization labels, for example: {"en":"Threshold", "es":"Umbral", ...}, if it is null, then recommend use name as label
 	Label L10n `yaml:"l10n,omitempty" json:"l10n,omitempty"`
 
-	// help contains some hint/tooltip text
+	// help contains description of this field, it should be a some kind of hint/tooltip text
 	Help L10n `yaml:"help,omitempty" json:"help,omitempty"`
 
 	// level of field, to display or hide some fields on the frontend
