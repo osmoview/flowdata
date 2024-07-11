@@ -30,7 +30,19 @@ const (
 )
 
 // Form it's just an slice of form fields
-type Form []FormField
+type Form []FormGroup
+
+// FormGroup contains multiple fields and group it by some purpose
+type FormGroup struct {
+	// name of the form group
+	Name string `yaml:"name" json:"name"`
+
+	// map of localization labels, for example: {"en":"Threshold", "es":"Umbral", ...}, if it is null, then recommend use name as label
+	Label L10n `yaml:"l10n,omitempty" json:"l10n,omitempty"`
+
+	// list of fields of this form group
+	Fields []FormField `yaml:"fields" json:"fields"`
+}
 
 // FormField describe how to required draw some input field on the frontend
 type FormField struct {
