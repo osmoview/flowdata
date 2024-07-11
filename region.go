@@ -1,9 +1,9 @@
 package flowdata
 
 type Region struct {
-	Name   string       `json:"name"`
-	Points [][2]float64 `json:"points"`
-	Color  string       `json:"color,omitempty"`
+	Name   string       `json:"name" yaml:"name"`
+	Points [][2]float64 `json:"points" yaml:"points"`
+	Color  string       `json:"color,omitempty" yaml:"color,omitempty"`
 }
 
 func NewRegion(name string, points [][2]float64, color string) *Region {
@@ -14,7 +14,7 @@ func NewRegion(name string, points [][2]float64, color string) *Region {
 	}
 }
 
-// BBox get a rectangle by points format: [x,y,w,h]
+// BBox transform regions points to the bbox[x,y,w,h] format
 func (r *Region) BBox() [4]float64 {
 	if len(r.Points) == 0 {
 		return [4]float64{0, 0, 0, 0}
@@ -42,14 +42,4 @@ func (r *Region) BBox() [4]float64 {
 	height := maxY - minY
 
 	return [4]float64{minX, minY, width, height}
-}
-
-// IsZeroBBox check is empty region bbox
-func (r *Region) IsZeroBBox(bbox [4]float64) bool {
-	for _, v := range bbox {
-		if v != 0 {
-			return false
-		}
-	}
-	return true
 }
