@@ -29,9 +29,6 @@ const (
 	FieldHookDatabase = "database"
 )
 
-// Form it's just an slice of form fields
-type Form []FormGroup
-
 // FormGroup contains multiple fields and group it by some purpose
 type FormGroup struct {
 	// name of the form group
@@ -43,6 +40,9 @@ type FormGroup struct {
 	// list of fields of this form group
 	Fields []FormField `yaml:"fields" json:"fields"`
 }
+
+// Form it's just an slice of form fields
+type Form []FormField
 
 // FormField describe how to required draw some input field on the frontend
 type FormField struct {
