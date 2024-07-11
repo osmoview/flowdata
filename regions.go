@@ -15,9 +15,9 @@ func NewRegion(name string, points [][2]float64, color string) *Region {
 }
 
 // BBox transform regions points to the bbox[x,y,w,h] format
-func (r *Region) BBox() [4]float64 {
-	if len(r.Points) == 0 {
-		return [4]float64{0, 0, 0, 0}
+func (r *Region) BBox() ([4]float64, bool) {
+	if len(r.Points) < 3 {
+		return [4]float64{0, 0, 0, 0}, false
 	}
 
 	minX, minY := 1.0, 1.0
@@ -41,5 +41,5 @@ func (r *Region) BBox() [4]float64 {
 	width := maxX - minX
 	height := maxY - minY
 
-	return [4]float64{minX, minY, width, height}
+	return [4]float64{minX, minY, width, height}, true
 }
