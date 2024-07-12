@@ -23,6 +23,9 @@ type Frame struct {
 	// image info
 	Info image.Config
 
+	// video position in ms
+	Position int
+
 	// TODO: support different image types
 	// image format, default: jpeg
 	// Format string
