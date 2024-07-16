@@ -1,11 +1,12 @@
 package flowdata
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"time"
 )
+
+var DefaultFrameTimeLayout = "2006-01-02_15:04:05"
 
 // Frame contains image data and time when that image was received.
 // it can contain only `bytes` or `image` or both of it.
@@ -55,11 +56,6 @@ func NewFrameImage(img image.Image) (*Frame, error) {
 	}, nil
 }
 
-func (f *Frame) String() string {
-	w, h := f.GetSize()
-	return fmt.Sprintf("%dx%d", w, h)
-}
-
 // GetImage returns image.Image
 func (f *Frame) GetImage() image.Image {
 	if f.Image != nil {
@@ -72,6 +68,22 @@ func (f *Frame) GetImage() image.Image {
 // GetTime returns time when image received
 func (f *Frame) GetTime() time.Time {
 	return f.Time
+}
+
+func (f *Frame) FormatTime() string {
+	return f.Time.Format(DefaultFrameTimeLayout)
+}
+
+func (f *Frame) Timestamp() int64 {
+	return f.Time.Unix()
+}
+
+func (f *Frame) TimestampNano() int64 {
+	return f.Time.UnixNano()
+}
+
+func (f *Frame) TimestampMilli() int64 {
+	return f.Time.UnixMilli()
 }
 
 // GetSize returns image resolution
