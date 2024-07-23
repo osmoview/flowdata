@@ -61,7 +61,7 @@ type Keypoints []Keypoint
 
 // Keypoint is a point with name and may has links to another keypoints
 type Keypoint struct {
-	Key   string
-	Point [2]float64
-	Links []string
+	Key   string     `json:"key"`
+	Point [2]float64 `json:"point"`
+	Links []string   `json:"links"`
 }
