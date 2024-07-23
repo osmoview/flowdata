@@ -3,6 +3,7 @@ package flowdata
 import (
 	"image"
 	"image/color"
+	"strconv"
 	"time"
 )
 
@@ -147,4 +148,21 @@ func (f *Frame) ColorModel() color.Model {
 	}
 
 	return f.Info.ColorModel
+}
+
+type RespContext interface {
+	Set(key, val string)
+	Send([]byte) error
+}
+
+func (f *Frame) WriteResponse(c RespContext) error {
+	bytes := f.GetBytes()
+
+	c.Set("Content-Type", "image/jpeg")
+	c.Set("Content-Length", strconv.Itoa(len(bytes)))
+	c.Set("X-Time", f.Time.String())
+	c.Set("X-Time_ms", strconv.Itoa(int(f.Time.UnixMilli())))
+	c.Set("X-Position", strconv.Itoa(f.Position))
+
+	return c.Send(bytes)
 }
