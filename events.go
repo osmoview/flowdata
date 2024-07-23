@@ -17,7 +17,10 @@ type Event struct {
 	UpdatedAt time.Time `json:"updated_at"`
 
 	// source UUID
-	Source string `json:"source"`
+	DataSource string `json:"datasource"`
+
+	// flow UUID
+	Flow string `json:"flow"`
 
 	// Status text message
 	Status string `json:"status"`
