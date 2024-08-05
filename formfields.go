@@ -32,7 +32,7 @@ const (
 // FormGroup contains multiple fields and group it by some purpose
 type FormGroup struct {
 	// name of the form group
-	Name string `yaml:"name" json:"name"`
+	Group string `yaml:"group" json:"group"`
 
 	// map of localization labels, for example: {"en":"Threshold", "es":"Umbral", ...}, if it is null, then recommend use name as label
 	Label L10n `yaml:"l10n,omitempty" json:"l10n,omitempty"`
