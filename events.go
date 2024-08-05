@@ -12,12 +12,12 @@ var TableName = "events"
 // Event struct contains the fields required for writing to the database
 type Event struct {
 	// event model contains ID as UUID, created and updated time
-	ID        string    `json:"id" gorm:"primaryKey;unique;type:uuid"`
+	ID        string    `json:"id" gorm:"primaryKey;unique"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
 	// source UUID
-	DataSource string `json:"datasource"`
+	DataSource string `json:"datasource" gorm:"column:datasource"`
 
 	// flow UUID
 	Flow string `json:"flow"`
@@ -45,10 +45,16 @@ func (o Objects) Value() (driver.Value, error) {
 }
 
 func (o *Objects) Scan(val any) error {
-	s, ok := val.(string)
-	if !ok {
-		return fmt.Errorf("failed to unmarshal JSON value")
+	var data []byte
+
+	switch v := val.(type) {
+	case string:
+		data = []byte(v)
+	case []byte:
+		data = v
+	default:
+		return fmt.Errorf("%T is unexpected data type", val)
 	}
 
-	return json.Unmarshal([]byte(s), o)
+	return json.Unmarshal(data, o)
 }
