@@ -5,6 +5,8 @@ import (
 	"image/color"
 	"strconv"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 var DefaultFrameTimeLayout = "2006-01-02_15:04:05"
@@ -14,24 +16,34 @@ var HeadersFrameTimeLayout = "2006-01-02 15:04:05.999999999 -0700 MST"
 // it can contain only `bytes` or `image` or both of it.
 // required to be a careful with reassigning an image data
 type Frame struct {
+	// uniquey frame ID
+	ID string `json:"id"`
+
 	// time when frame received
-	Time time.Time
+	Time time.Time `json:"time"`
 
 	// presentation of an image in the image.Image interface
-	Image image.Image
+	Image image.Image `json:"-"`
 
 	// raw bytes of the image(jpeg usually)
-	Bytes []byte
+	Bytes []byte `json:"bytes"`
 
 	// image info
-	Info image.Config
+	Info ImageInfo `json:"info"`
 
 	// video position in ms
-	Position int
+	Position int `json:"position"`
 
 	// TODO: support different image types
 	// image format, default: jpeg
 	// Format string
+}
+
+type ImageInfo struct {
+	Width  int `json:"width,omitempty"`
+	Height int `json:"height,omitempty"`
+
+	colorModel color.Model
 }
 
 func NewFrameBytes(data []byte) (*Frame, error) {
@@ -42,9 +54,10 @@ func NewFrameBytes(data []byte) (*Frame, error) {
 	}
 
 	return &Frame{
+		ID:    uuid.NewString(),
 		Time:  time.Now(),
 		Bytes: data,
-		Info:  info,
+		Info:  ImageInfo{Width: info.Width, Height: info.Height, colorModel: info.ColorModel},
 	}, nil
 }
 
@@ -52,9 +65,10 @@ func NewFrameImage(img image.Image) (*Frame, error) {
 	b := img.Bounds().Max
 
 	return &Frame{
+		ID:    uuid.NewString(),
 		Time:  time.Now(),
 		Image: img,
-		Info:  image.Config{ColorModel: img.ColorModel(), Width: b.X, Height: b.Y},
+		Info:  ImageInfo{Width: b.X, Height: b.Y, colorModel: img.ColorModel()},
 	}, nil
 }
 
@@ -65,6 +79,11 @@ func (f *Frame) GetImage() image.Image {
 	}
 
 	return f
+}
+
+// GetID returns the ID. generated when frame was created
+func (f *Frame) GetID() string {
+	return f.ID
 }
 
 // GetTime returns time when image received
@@ -148,7 +167,7 @@ func (f *Frame) ColorModel() color.Model {
 		return f.Image.ColorModel()
 	}
 
-	return f.Info.ColorModel
+	return f.Info.colorModel
 }
 
 type RespContext interface {
