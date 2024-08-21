@@ -190,5 +190,5 @@ func (f *Frame) WriteResponse(c RespContext) error {
 }
 
 func (f *Frame) FormDataFile() (filedata []byte, filename, contentType string) {
-	return f.Bytes, "frame.jpg", ContentTypeImageJPEG
+	return f.GetBytes(), "frame.jpg", ContentTypeImageJPEG
 }
