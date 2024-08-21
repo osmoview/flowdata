@@ -12,6 +12,8 @@ import (
 var DefaultFrameTimeLayout = "2006-01-02_15:04:05"
 var HeadersFrameTimeLayout = "2006-01-02 15:04:05.999999999 -0700 MST"
 
+const ContentTypeImageJPEG = "image/jpeg"
+
 // Frame contains image data and time when that image was received.
 // it can contain only `bytes` or `image` or both of it.
 // required to be a careful with reassigning an image data
@@ -178,11 +180,15 @@ type RespContext interface {
 func (f *Frame) WriteResponse(c RespContext) error {
 	bytes := f.GetBytes()
 
-	c.Set("Content-Type", "image/jpeg")
+	c.Set("Content-Type", ContentTypeImageJPEG)
 	c.Set("Content-Length", strconv.Itoa(len(bytes)))
 	c.Set("X-Time", f.Time.Format(HeadersFrameTimeLayout))
 	c.Set("X-Time_ms", strconv.Itoa(int(f.Time.UnixMilli())))
 	c.Set("X-Position", strconv.Itoa(f.Position))
 
 	return c.Send(bytes)
+}
+
+func (f *Frame) FormDataFile() (filedata []byte, filename, contentType string) {
+	return f.Bytes, "frame.jpg", ContentTypeImageJPEG
 }
