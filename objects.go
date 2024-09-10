@@ -7,7 +7,7 @@ type Object struct {
 	Type  string       `json:"type"`
 	Name  string       `json:"name,omitempty"`
 	Prob  float64      `json:"prob,omitempty"`
-	BBox  [4]float64   `json:"bbox,omitempty"`
+	BBox  BBox         `json:"bbox,omitempty"`
 	Area  [][2]float64 `json:"area,omitempty"`
 	Color string       `json:"color,omitempty"`
 
@@ -64,4 +64,17 @@ type Keypoint struct {
 	Key   string     `json:"key"`
 	Point [2]float64 `json:"point"`
 	Links []string   `json:"links"`
+}
+
+type BBox [4]float64
+
+func (bbox BBox) Scale(n float64) BBox {
+	kw := bbox[2]*n - bbox[2]
+	kh := bbox[3]*n - bbox[3]
+	return BBox{
+		bbox[0] - kw/2,
+		bbox[1] - kh/2,
+		bbox[2] + kw,
+		bbox[3] + kh,
+	}
 }
