@@ -79,14 +79,18 @@ type FormFieldOption struct {
 type L10n map[string]string
 
 // Get should extract from the l10n map required value by key
-// if not exist, try to get default language, if not then returns a key
-func (m L10n) Get(key string) string {
+// if not exist, try to get default language, if not then returns a key or default value
+func (m L10n) Get(key string, def ...string) string {
 	if v, ok := m[key]; ok {
 		return v
 	}
 
 	if v, ok := m[DefaultLangKey]; ok {
 		return v
+	}
+
+	if len(def) > 0 {
+		return def[0]
 	}
 
 	return key
