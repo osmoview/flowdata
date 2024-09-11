@@ -89,8 +89,12 @@ func (m L10n) Get(key string, def ...string) string {
 		return v
 	}
 
-	if len(def) > 0 {
-		return def[0]
+	// check each passed default values, returns not empty first one,
+	// ie: label.Get("en", node.Name, node.ID) - returns label by en key, if it not exists, returns node.Name value, and if not exists too, then check node.ID
+	for _, s := range def {
+		if s != "" {
+			return s
+		}
 	}
 
 	return key
