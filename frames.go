@@ -1,6 +1,7 @@
 package flowdata
 
 import (
+	"errors"
 	"image"
 	"image/color"
 	"strconv"
@@ -11,6 +12,8 @@ import (
 
 var DefaultFrameTimeLayout = "2006-01-02_15:04:05"
 var HeadersFrameTimeLayout = "2006-01-02 15:04:05.999999999 -0700 MST"
+
+var ErrNoFrameData = errors.New("no frame data")
 
 const ContentTypeImageJPEG = "image/jpeg"
 
@@ -120,20 +123,20 @@ func (f *Frame) GetSize() (w, h int) {
 }
 
 // GetBytes return slice from `bytes` field, if it exists, overwise encode image to the jpeg
-func (f *Frame) GetBytes() []byte {
+func (f *Frame) GetBytes() (imgdata []byte, err error) {
 	// if bytes exists then just return it
 	if len(f.Bytes) > 0 {
-		return f.Bytes
+		return f.Bytes, nil
 	}
 
 	// if image exists encode it to the jpeg
 	if f.Image != nil {
-		f.Bytes, _ = EncodeJPEG(f.Image)
-		return f.Bytes
+		f.Bytes, err = EncodeJPEG(f.Image)
+		return f.Bytes, err
 	}
 
 	// if nothing exists, then do not return anything
-	return nil
+	return imgdata, ErrNoFrameData
 }
 
 // Bounds of image received from jpeg.DecodeConfig
@@ -178,7 +181,10 @@ type RespContext interface {
 }
 
 func (f *Frame) WriteResponse(c RespContext) error {
-	bytes := f.GetBytes()
+	bytes, err := f.GetBytes()
+	if err != nil {
+		return err
+	}
 
 	c.Set("Content-Type", ContentTypeImageJPEG)
 	c.Set("Content-Length", strconv.Itoa(len(bytes)))
@@ -189,6 +195,7 @@ func (f *Frame) WriteResponse(c RespContext) error {
 	return c.Send(bytes)
 }
 
-func (f *Frame) FormDataFile() (filedata []byte, filename, contentType string) {
-	return f.GetBytes(), "frame.jpg", ContentTypeImageJPEG
+func (f *Frame) FormDataFile() (filedata []byte, filename, contentType string, err error) {
+	filedata, err = f.GetBytes()
+	return filedata, "frame.jpg", ContentTypeImageJPEG, err
 }
