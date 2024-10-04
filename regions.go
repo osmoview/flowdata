@@ -1,6 +1,7 @@
 package flowdata
 
 type Region struct {
+	ID     string       `json:"id" yaml:"id"`
 	Name   string       `json:"name" yaml:"name"`
 	Points [][2]float64 `json:"points" yaml:"points"`
 	Color  string       `json:"color,omitempty" yaml:"color,omitempty"`
