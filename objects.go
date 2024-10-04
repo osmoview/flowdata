@@ -67,17 +67,3 @@ type Keypoint struct {
 	Point [2]float64 `json:"point"`
 	Links []string   `json:"links"`
 }
-
-type BBox [4]float64
-
-func (bbox BBox) Scale(n float64) BBox {
-	kw := bbox[2]*n - bbox[2]
-	kh := bbox[3]*n - bbox[3]
-
-	return BBox{
-		bbox[0] - kw/2,
-		bbox[1] - kh/2,
-		bbox[2] + kw,
-		bbox[3] + kh,
-	}
-}
