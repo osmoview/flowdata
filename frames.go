@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/oliamb/cutter"
 )
 
 var DefaultFrameTimeLayout = "2006-01-02_15:04:05"
@@ -173,6 +174,40 @@ func (f *Frame) ColorModel() color.Model {
 	}
 
 	return f.Info.colorModel
+}
+
+type SubImager interface {
+	SubImage(r image.Rectangle) image.Image
+}
+
+func (f *Frame) Crop(bbox BBox) (*Frame, error) {
+	width, height := f.GetSize()
+
+	x := int(bbox[0] * float64(width))
+	y := int(bbox[1] * float64(height))
+	w := int(bbox[2] * float64(width))
+	h := int(bbox[3] * float64(height))
+
+	rect := image.Rect(x, y, x+w, y+h)
+
+	frameImage := f.GetImage()
+
+	// if image compatible with SubImager interface
+	sub, ok := frameImage.(SubImager)
+	if ok {
+		return NewFrameImage(sub.SubImage(rect))
+	}
+
+	bboxImage, err := cutter.Crop(frameImage, cutter.Config{
+		Anchor: image.Point{X: x, Y: y},
+		Width:  w,
+		Height: h,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return NewFrameImage(bboxImage)
 }
 
 type RespContext interface {
