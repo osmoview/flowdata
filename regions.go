@@ -1,5 +1,7 @@
 package flowdata
 
+import "github.com/google/uuid"
+
 type Region struct {
 	ID     string       `json:"id" yaml:"id"`
 	Name   string       `json:"name" yaml:"name"`
@@ -7,8 +9,10 @@ type Region struct {
 	Color  string       `json:"color,omitempty" yaml:"color,omitempty"`
 }
 
+// NewRegion creates new region instance
 func NewRegion(name string, points [][2]float64, color string) *Region {
 	return &Region{
+		ID:     uuid.NewString(),
 		Name:   name,
 		Points: points,
 		Color:  color,
