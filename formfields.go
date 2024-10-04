@@ -27,6 +27,7 @@ const (
 	FieldHookCameras  = "cameras"
 	FieldHookServices = "services"
 	FieldHookDatabase = "database"
+	FieldHookClasses  = "classes"
 )
 
 // FormGroup contains multiple fields and group it by some purpose
@@ -69,6 +70,9 @@ type FormField struct {
 
 	// some hook to execute after the form is built
 	Hook string `yaml:"hook,omitempty" json:"-"`
+
+	Creatable bool `yaml:"creatable,omitempty" json:"creatable,omitempty"`
+	Multiple  bool `yaml:"multiple,omitempty" json:"multiple,omitempty"`
 }
 
 type FormFieldOption struct {
