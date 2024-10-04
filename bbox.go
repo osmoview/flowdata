@@ -2,6 +2,10 @@ package flowdata
 
 type BBox [4]float64
 
+func (bbox BBox) IsValid() bool {
+	return bbox[2] > 0 && bbox[3] > 0
+}
+
 func (bbox BBox) Scale(n float64) BBox {
 	kw := bbox[2]*n - bbox[2]
 	kh := bbox[3]*n - bbox[3]

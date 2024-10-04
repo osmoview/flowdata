@@ -16,6 +16,8 @@ type Object struct {
 	Data map[string]interface{} `json:"data,omitempty"`
 
 	Keypoints Keypoints `json:"keypoints,omitempty"`
+
+	Objects []*Object `json:"objects,omitempty"`
 }
 
 func (o *Object) String() string {
@@ -38,6 +40,7 @@ func (o *Object) Copy() *Object {
 	newObj.Area = make([][2]float64, len(o.Area))
 	copy(newObj.Area, o.Area)
 
+	// copy data if it exists
 	if o.Data != nil {
 		newObj.Data = make(map[string]interface{})
 		for k, v := range o.Data {
@@ -45,17 +48,15 @@ func (o *Object) Copy() *Object {
 		}
 	}
 
-	return &newObj
-}
-
-// IsZeroBBox check is empty bbox
-func (o *Object) IsZeroBBox() bool {
-	for _, v := range o.BBox {
-		if v != 0 {
-			return false
+	// create copies of sub objects
+	if o.Objects != nil {
+		newObj.Objects = make([]*Object, 0, len(o.Objects))
+		for _, sub := range o.Objects {
+			newObj.Objects = append(newObj.Objects, sub.Copy())
 		}
 	}
-	return true
+
+	return &newObj
 }
 
 // Keypoints is a slice on keypoints
