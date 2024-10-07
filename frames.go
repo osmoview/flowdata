@@ -40,9 +40,11 @@ type Frame struct {
 	// video position in ms
 	Position int `json:"position"`
 
-	// TODO: support different image types
-	// image format, default: jpeg
-	// Format string
+	// original image, exist for crop images
+	Original *Frame `json:"-"`
+
+	// if image based on the some bbox, it required to restore objects bboxes from the crop imaged to original
+	BBox BBox `json:"-"`
 }
 
 type ImageInfo struct {
@@ -50,6 +52,10 @@ type ImageInfo struct {
 	Height int `json:"height,omitempty"`
 
 	colorModel color.Model
+
+	// TODO: support different image types
+	// image format, default: jpeg
+	// Format string
 }
 
 func NewFrameBytes(data []byte) (*Frame, error) {
@@ -180,13 +186,20 @@ type SubImager interface {
 	SubImage(r image.Rectangle) image.Image
 }
 
-func (f *Frame) Crop(bbox BBox) (*Frame, error) {
+func (f *Frame) Crop(bbox BBox) (frame *Frame, err error) {
 	width, height := f.GetSize()
 
 	x := int(bbox[0] * float64(width))
 	y := int(bbox[1] * float64(height))
 	w := int(bbox[2] * float64(width))
 	h := int(bbox[3] * float64(height))
+
+	defer func() {
+		if frame != nil {
+			frame.Original = f
+			frame.BBox = bbox
+		}
+	}()
 
 	rect := image.Rect(x, y, x+w, y+h)
 
@@ -226,11 +239,12 @@ func (f *Frame) WriteResponse(c RespContext) error {
 	c.Set("X-Time", f.Time.Format(HeadersFrameTimeLayout))
 	c.Set("X-Time_ms", strconv.Itoa(int(f.Time.UnixMilli())))
 	c.Set("X-Position", strconv.Itoa(f.Position))
+	c.Set("X-ID", f.ID)
 
 	return c.Send(bytes)
 }
 
 func (f *Frame) FormDataFile() (filedata []byte, filename, contentType string, err error) {
 	filedata, err = f.GetBytes()
-	return filedata, "frame.jpg", ContentTypeImageJPEG, err
+	return filedata, f.ID, ContentTypeImageJPEG, err
 }
