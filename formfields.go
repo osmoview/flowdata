@@ -28,6 +28,7 @@ const (
 	FieldHookServices = "services"
 	FieldHookDatabase = "database"
 	FieldHookClasses  = "classes"
+	FieldHookRegions  = "regions"
 )
 
 // FormGroup contains multiple fields and group it by some purpose
