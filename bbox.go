@@ -38,3 +38,12 @@ func (bbox BBox) Top() [2]float64 {
 		bbox[1] + bbox[3]/2,
 	}
 }
+
+func (bbox BBox) RestoreSize(crop BBox) BBox {
+	return BBox{
+		bbox[0]*crop[2] + crop[0],
+		bbox[1]*crop[3] + crop[1],
+		bbox[2] * crop[2],
+		bbox[3] * crop[3],
+	}
+}
