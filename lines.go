@@ -11,7 +11,7 @@ const (
 type Line struct {
 	ID        string       `json:"id" yaml:"id"`
 	Name      string       `json:"name" yaml:"name"`
-	Points    [][2]float64 `json:"points" yaml:"points"`
+	Points    [][2]float64 `json:"points" yaml:"points,flow"`
 	Color     string       `json:"color,omitempty" yaml:"color,omitempty"`
 	Direction string       `json:"direction"`
 }
