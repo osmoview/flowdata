@@ -43,9 +43,6 @@ type FormGroup struct {
 	Fields []FormField `yaml:"fields" json:"fields"`
 }
 
-// Form it's just an slice of form fields
-type Form []FormField
-
 // FormField describe how to required draw some input field on the frontend
 type FormField struct {
 	// field name, should be used as key for fill values in the data map
