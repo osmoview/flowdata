@@ -17,6 +17,8 @@ type Object struct {
 
 	Keypoints Keypoints `json:"keypoints,omitempty"`
 
+	Vector Vector `json:"vector,omitempty"`
+
 	Objects []*Object `json:"objects,omitempty"`
 }
 
