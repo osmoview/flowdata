@@ -189,10 +189,10 @@ type SubImager interface {
 func (f *Frame) Crop(bbox BBox) (frame *Frame, err error) {
 	width, height := f.GetSize()
 
-	x := int(bbox[0] * float64(width))
-	y := int(bbox[1] * float64(height))
-	w := int(bbox[2] * float64(width))
-	h := int(bbox[3] * float64(height))
+	x := int(bbox[0] * float32(width))
+	y := int(bbox[1] * float32(height))
+	w := int(bbox[2] * float32(width))
+	h := int(bbox[3] * float32(height))
 
 	defer func() {
 		if frame != nil {

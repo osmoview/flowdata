@@ -1,44 +1,72 @@
 package flowdata
 
-type BBox [4]float64
+// BBox describe position and size of the object [x,y,w,h] in relative to the image coordinates
+type BBox [4]float32
 
+// IsValid checks whether the bbox has width and heigth
 func (bbox BBox) IsValid() bool {
 	return bbox[2] > 0 && bbox[3] > 0
 }
 
-func (bbox BBox) Scale(n float64) BBox {
+// Scale bbox by specified value
+func (bbox BBox) Scale(n float32) BBox {
 	kw := bbox[2]*n - bbox[2]
 	kh := bbox[3]*n - bbox[3]
 
-	return BBox{
+	b := BBox{
 		bbox[0] - kw/2,
 		bbox[1] - kh/2,
 		bbox[2] + kw,
 		bbox[3] + kh,
 	}
+
+	return b.Fix()
 }
 
-func (bbox BBox) Center() [2]float64 {
-	return [2]float64{
+// Fix should fit the bbox in the 0.0-1.0 range
+func (bbox BBox) Fix() (b BBox) {
+	b = bbox
+	if b[0] < 0 {
+		b[0] = 0
+	}
+	if b[1] < 0 {
+		b[1] = 0
+	}
+	if b[0]+b[2] > 1 {
+		b[2] = 1 - b[0]
+	}
+	if b[1]+b[3] > 1 {
+		b[3] = 1 - b[1]
+	}
+
+	return b
+}
+
+// Center returns center point from the bbox
+func (bbox BBox) Center() [2]float32 {
+	return [2]float32{
 		bbox[0] + bbox[2]/2,
 		bbox[1] + bbox[3]/2,
 	}
 }
 
-func (bbox BBox) Bottom() [2]float64 {
-	return [2]float64{
+// Bottom returns center bottom point
+func (bbox BBox) Bottom() [2]float32 {
+	return [2]float32{
 		bbox[0] + bbox[2]/2,
 		bbox[1] + bbox[3],
 	}
 }
 
-func (bbox BBox) Top() [2]float64 {
-	return [2]float64{
+// Top returns center top point
+func (bbox BBox) Top() [2]float32 {
+	return [2]float32{
 		bbox[0],
 		bbox[1] + bbox[3]/2,
 	}
 }
 
+// RestoreSize should restore bbox size relative crop BBox
 func (bbox BBox) RestoreSize(crop BBox) BBox {
 	return BBox{
 		bbox[0]*crop[2] + crop[0],
