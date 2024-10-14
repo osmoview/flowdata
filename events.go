@@ -1,13 +1,8 @@
 package flowdata
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"fmt"
 	"time"
 )
-
-var TableName = "events"
 
 // Event struct contains the fields required for writing to the database
 type Event struct {
@@ -26,35 +21,9 @@ type Event struct {
 	Status string `json:"status"`
 
 	// Objects array
-	Objects Objects `json:"objects" gorm:"type:json"`
+	Objects []*Object `json:"objects" gorm:"serializer:json;type:json"`
 }
 
 func (Event) TableName() string {
-	return TableName
-}
-
-//
-// objects custom data type implements scanner and valuer methods
-//
-
-type Objects []*Object
-
-func (o Objects) Value() (driver.Value, error) {
-	b, err := json.Marshal(o)
-	return string(b), err
-}
-
-func (o *Objects) Scan(val any) error {
-	var data []byte
-
-	switch v := val.(type) {
-	case string:
-		data = []byte(v)
-	case []byte:
-		data = v
-	default:
-		return fmt.Errorf("%T is unexpected data type", val)
-	}
-
-	return json.Unmarshal(data, o)
+	return "events"
 }
