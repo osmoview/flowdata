@@ -1,5 +1,7 @@
 package flowdata
 
+import "math"
+
 // BBox describe position and size of the object [x,y,w,h] in relative to the image coordinates
 type BBox [4]float32
 
@@ -64,6 +66,16 @@ func (bbox BBox) Top() [2]float32 {
 		bbox[0],
 		bbox[1] + bbox[3]/2,
 	}
+}
+
+func (bbox BBox) Dist(b BBox) float32 {
+	p1 := bbox.Center()
+	p2 := b.Center()
+
+	x := p2[0] - p1[0]
+	y := p2[1] - p1[1]
+
+	return float32(math.Abs(math.Sqrt(float64(x*x + y*y))))
 }
 
 // RestoreSize should restore bbox size relative crop BBox
