@@ -55,7 +55,7 @@ type FormField struct {
 	Default any `yaml:"default,omitempty" json:"default,omitempty"`
 
 	// map of localization labels, for example: {"en":"Threshold", "es":"Umbral", ...}, if it is null, then recommend use name as label
-	Label L10n `yaml:"l10n,omitempty" json:"l10n,omitempty"`
+	Label L10n `yaml:"label,omitempty" json:"label,omitempty"`
 
 	// help contains description of this field, it should be a some kind of hint/tooltip text
 	Help L10n `yaml:"help,omitempty" json:"help,omitempty"`
