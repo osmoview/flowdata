@@ -2,6 +2,7 @@ package flowdata
 
 import (
 	"errors"
+	"fmt"
 	"image"
 	"image/color"
 	"strconv"
@@ -91,6 +92,10 @@ func (f *Frame) GetImage() image.Image {
 	}
 
 	return f
+}
+
+func (f *Frame) String() string {
+	return fmt.Sprintf("{id: %s, size: %d}", f.ID, len(f.Bytes))
 }
 
 // GetID returns the ID. generated when frame was created
@@ -236,9 +241,11 @@ func (f *Frame) WriteResponse(c RespContext) error {
 
 	c.Set("Content-Type", ContentTypeImageJPEG)
 	c.Set("Content-Length", strconv.Itoa(len(bytes)))
-	c.Set("X-Time", f.Time.Format(HeadersFrameTimeLayout))
-	c.Set("X-Time_ms", strconv.Itoa(int(f.Time.UnixMilli())))
+
+	c.Set("X-DateTime", f.Time.Format(HeadersFrameTimeLayout))
+	c.Set("X-Timestamp_ms", strconv.Itoa(int(f.Time.UnixMilli())))
 	c.Set("X-Position", strconv.Itoa(f.Position))
+	c.Set("X-Size", fmt.Sprintf("%dx%d", f.Info.Width, f.Info.Height))
 	c.Set("X-ID", f.ID)
 
 	return c.Send(bytes)
