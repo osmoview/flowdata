@@ -95,7 +95,7 @@ func (f *Frame) GetImage() image.Image {
 }
 
 func (f *Frame) String() string {
-	return fmt.Sprintf("{id: %s, size: %d}", f.ID, len(f.Bytes))
+	return fmt.Sprintf("id: %s, %d bytes, image: %v", f.ID, len(f.Bytes), f.Image != nil)
 }
 
 // GetID returns the ID. generated when frame was created
