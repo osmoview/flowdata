@@ -11,6 +11,7 @@ type Object struct {
 	Prob  float64      `json:"prob,omitempty"`
 	BBox  BBox         `json:"bbox,omitempty"`
 	Area  [][2]float64 `json:"area,omitempty"`
+	Text  string       `json:"text,omitempty"`
 	Color string       `json:"color,omitempty"`
 
 	Data map[string]interface{} `json:"data,omitempty"`
