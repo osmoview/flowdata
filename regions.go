@@ -1,6 +1,10 @@
 package flowdata
 
-import "github.com/google/uuid"
+import (
+	"math"
+
+	"github.com/google/uuid"
+)
 
 type Region struct {
 	ID     string       `json:"id" yaml:"id"`
@@ -43,8 +47,8 @@ func (r *Region) BBox() (BBox, bool) {
 		}
 	}
 
-	width := maxX - minX
-	height := maxY - minY
+	width := float32(math.Round(float64(maxX-minX)*100) / 100)
+	height := float32(math.Round(float64(maxY-minY)*100) / 100)
 
 	return BBox{minX, minY, width, height}, true
 }
