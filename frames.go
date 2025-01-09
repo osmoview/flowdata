@@ -1,6 +1,7 @@
 package flowdata
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
@@ -254,4 +255,12 @@ func (f *Frame) WriteResponse(c RespContext) error {
 func (f *Frame) FormDataFile() (filedata []byte, filename, contentType string, err error) {
 	filedata, err = f.GetBytes()
 	return filedata, f.ID, ContentTypeImageJPEG, err
+}
+
+func (f *Frame) MarshalJSON() ([]byte, error) {
+	if _, err := f.GetBytes(); err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(struct{ Frame }{*f})
 }

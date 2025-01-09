@@ -1,6 +1,8 @@
 package flowdata
 
 import (
+	"bytes"
+	"encoding/json"
 	"image"
 	"os"
 	"testing"
@@ -98,4 +100,29 @@ func TestFrameCrop(t *testing.T) {
 	}
 
 	os.WriteFile("testdata/crop.jpg", cropBytes, 0666)
+}
+
+func TestFrameMarshalJSON(t *testing.T) {
+	frame, err := NewFrameImage(imageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	framejson, err := json.Marshal(frame)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var f Frame
+	if err := json.Unmarshal(framejson, &f); err != nil {
+		t.Fatal(err)
+	}
+
+	if f.ID != frame.ID {
+		t.Fatal("id not equal")
+	}
+
+	if len(f.Bytes) == 0 || !bytes.Equal(f.Bytes, frame.Bytes) {
+		t.Fatal("frame bytes is empty or unequal")
+	}
 }
