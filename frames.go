@@ -7,6 +7,7 @@ import (
 	"image"
 	"image/color"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -47,6 +48,9 @@ type Frame struct {
 
 	// if image based on the some bbox, it required to restore objects bboxes from the crop imaged to original
 	BBox BBox `json:"-"`
+
+	// mutex required to avoid double reencoding with simultaneous requests
+	sync.Mutex
 }
 
 type ImageInfo struct {
@@ -137,6 +141,9 @@ func (f *Frame) GetSize() (w, h int) {
 
 // GetBytes return slice from `bytes` field, if it exists, overwise encode image to the jpeg
 func (f *Frame) GetBytes() (imgdata []byte, err error) {
+	f.Lock()
+	defer f.Unlock()
+
 	// if bytes exists then just return it
 	if len(f.Bytes) > 0 {
 		return f.Bytes, nil
@@ -167,6 +174,9 @@ func (f *Frame) At(x, y int) color.Color {
 	if f.Image != nil {
 		return f.Image.At(x, y)
 	}
+
+	f.Lock()
+	defer f.Unlock()
 
 	// if bytes exists, decode it as jpeg and return color from obtained image.Image
 	if len(f.Bytes) > 0 {
