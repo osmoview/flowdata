@@ -78,6 +78,10 @@ func (bbox BBox) Dist(b BBox) float32 {
 	return float32(math.Abs(math.Sqrt(float64(x*x + y*y))))
 }
 
+func (bbox BBox) IsEqual(b BBox) bool {
+	return bbox[0] == b[0] && bbox[1] == b[1] && bbox[2] == b[2] && bbox[3] == b[3]
+}
+
 // RestoreSize should restore bbox size relative crop BBox
 func (bbox BBox) RestoreSize(crop BBox) BBox {
 	return BBox{
