@@ -89,7 +89,7 @@ func TestFrameCrop(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	crop, err := frame.Crop(BBox{0.1, 0.1, 0.8, 0.8})
+	crop, err := frame.Crop(BBox{0.35, 0.8, 0.3, 0.2})
 	if err != nil {
 		t.Fatal(err)
 	}

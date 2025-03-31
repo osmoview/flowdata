@@ -132,8 +132,9 @@ func (f *Frame) TimestampMilli() int64 {
 // GetSize returns image resolution
 func (f *Frame) GetSize() (w, h int) {
 	if f.Image != nil {
-		b := f.Image.Bounds().Max
-		return b.X, b.Y
+		max := f.Image.Bounds().Max
+		min := f.Image.Bounds().Min
+		return max.X - min.X, max.Y - min.Y
 	}
 
 	return f.Info.Width, f.Info.Height
@@ -231,6 +232,7 @@ func (f *Frame) Crop(bbox BBox) (frame *Frame, err error) {
 		Anchor: image.Point{X: x, Y: y},
 		Width:  w,
 		Height: h,
+		// Options: cutter.Copy,
 	})
 	if err != nil {
 		return nil, err
