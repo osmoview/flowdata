@@ -65,6 +65,107 @@ func (o *Object) Copy() *Object {
 	return &newObj
 }
 
+// Merge two objects
+func (o *Object) Merge(obj *Object) {
+	if o.Type != "" && o.Type != obj.Type {
+		return // can not merge different types
+	}
+
+	if obj.ID != "" {
+		o.ID = obj.ID
+	}
+	if obj.Name != "" {
+		o.Name = obj.Name
+	}
+	if obj.Prob != 0 {
+		o.Prob = obj.Prob
+	}
+	if obj.BBox.IsValid() {
+		o.BBox = obj.BBox
+	}
+	if obj.Text != "" {
+		o.Text = obj.Text
+	}
+	if obj.Color != "" {
+		o.Color = obj.Color
+	}
+
+	if obj.Data != nil {
+		if o.Data == nil {
+			o.Data = obj.Data
+		} else {
+			o.Data = make(map[string]interface{})
+			for k, v := range obj.Data {
+				o.Data[k] = v
+			}
+		}
+	}
+
+	if len(obj.Keypoints) != 0 {
+		o.Keypoints = obj.Keypoints
+	}
+
+	o.Objects = MergeObjects(o.Objects, obj.Objects)
+
+	if obj.ExternalID != "" {
+		o.ExternalID = obj.ExternalID
+	}
+
+	if len(obj.Vector) != 0 {
+		o.Vector = obj.Vector
+		o.VectorMatch = obj.VectorMatch
+	}
+
+	if obj.Profile != nil {
+		o.Profile = obj.Profile
+	}
+
+}
+
+// Merge two slices of objects
+func MergeObjects(a, b []*Object) []*Object {
+	if len(b) == 0 && len(a) == 0 {
+		return a
+	}
+	if len(b) == 0 && len(a) > 0 {
+		return a
+	}
+	if len(b) > 0 && len(a) == 0 {
+		return b
+	}
+
+	list := make([]*Object, 0, len(a))
+	for _, o := range a {
+		obj, ok := LookupSimilarObject(b, o)
+		if ok {
+			o.Merge(obj)
+		}
+		list = append(list, o)
+	}
+
+	for _, o := range b {
+		if _, ok := LookupSimilarObject(list, o); !ok {
+			list = append(list, o)
+		}
+	}
+
+	return list
+}
+
+func LookupSimilarObject(list []*Object, o *Object) (*Object, bool) {
+	for _, obj := range list {
+		if obj.ID != "" && obj.ID == o.ID {
+			return obj, true
+		}
+
+		if obj.BBox.IsValid() && obj.BBox.IsEqual(o.BBox) {
+			return obj, true
+		}
+	}
+
+	return nil, false
+}
+
 // Keypoints is a slice on keypoints
 type Keypoints []Keypoint
 
