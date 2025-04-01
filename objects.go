@@ -83,6 +83,9 @@ func (o *Object) Merge(obj *Object) {
 	if obj.BBox.IsValid() {
 		o.BBox = obj.BBox
 	}
+	if len(obj.Area) > 0 {
+		o.Area = obj.Area
+	}
 	if obj.Text != "" {
 		o.Text = obj.Text
 	}
