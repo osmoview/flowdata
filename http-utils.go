@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+var ErrUnsupportedVariableType = errors.New("unsupported variable type")
+
 //
 // http error
 //
@@ -31,12 +33,18 @@ func (e *HTTPError) Error() string {
 	return e.Message
 }
 
-var ErrUnsupportedVariableType = errors.New("unsupported variable type")
+//
+//
+//
 
 // FormDataFile is interface describe entitiy like *Frame suitable to sending by http as part of multipart/form-data
 type FormDataFile interface {
 	FormDataFile() (filedata []byte, filename string, contentType string, err error)
 }
+
+//
+//
+//
 
 // MultipartEncoder is just a wrapper aroind *multipart.Writer to more comfortable encode data
 type MultipartEncoder struct {
@@ -55,7 +63,6 @@ func (e *MultipartEncoder) Encode(v any) error {
 
 	for k, v := range m {
 
-		// i dont want to import `flowdata` package
 		// *flowdata.Frame implement FormDataFile interface, but golang cannot properly handle
 		// slice of structs implements some interface, so checks it by reflect, sorry
 		if rv, ok := e.isSliceOfFormDataFile(v); ok {
@@ -108,7 +115,7 @@ func (e *MultipartEncoder) Encode(v any) error {
 
 	}
 
-	return e.Close()
+	return nil
 }
 
 func (e *MultipartEncoder) GetPartHeader(partname string, data []byte, filename, contentType string) (h textproto.MIMEHeader) {
