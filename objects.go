@@ -19,6 +19,7 @@ type Object struct {
 	Keypoints Keypoints `json:"keypoints,omitempty"`
 
 	Objects []*Object `json:"objects,omitempty"`
+	Items   []*Object `json:"items,omitempty"` // DEPRECATED: required only to compatible with legacy services
 
 	ExternalID  string    `json:"external_id,omitempty"`
 	Vector      Vector    `json:"vector,omitempty"`
@@ -97,7 +98,6 @@ func (o *Object) Merge(obj *Object) {
 		if o.Data == nil {
 			o.Data = obj.Data
 		} else {
-			o.Data = make(map[string]interface{})
 			for k, v := range obj.Data {
 				o.Data[k] = v
 			}
@@ -109,6 +109,7 @@ func (o *Object) Merge(obj *Object) {
 	}
 
 	o.Objects = MergeObjects(o.Objects, obj.Objects)
+	o.Items = MergeObjects(o.Items, obj.Objects)
 
 	if obj.ExternalID != "" {
 		o.ExternalID = obj.ExternalID
