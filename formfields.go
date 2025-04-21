@@ -1,5 +1,7 @@
 package flowdata
 
+import "strings"
+
 var DefaultLangKey = "en"
 
 const (
@@ -100,4 +102,16 @@ func (m L10n) Get(key string, def ...string) string {
 	}
 
 	return key
+}
+
+// Contains checks the occurrence of a substring in one of the localization strings
+func (m L10n) Contains(substr string) bool {
+	substr = strings.ToLower(substr)
+	for _, s := range m {
+		if strings.Contains(strings.ToLower(s), substr) {
+			return true
+		}
+	}
+
+	return false
 }
