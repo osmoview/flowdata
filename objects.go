@@ -68,7 +68,7 @@ func (o *Object) Copy() *Object {
 
 // Merge two objects
 func (o *Object) Merge(obj *Object) {
-	if o.Type != "" && o.Type != obj.Type {
+	if o.Type != "" && obj.Type != "" && o.Type != obj.Type {
 		return // can not merge different types
 	}
 
