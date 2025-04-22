@@ -13,6 +13,7 @@ type Object struct {
 	Area  [][2]float64 `json:"area,omitempty"`
 	Text  string       `json:"text,omitempty"`
 	Color string       `json:"color,omitempty"`
+	State string       `json:"state,omitempty"`
 
 	Data map[string]interface{} `json:"data,omitempty"`
 
