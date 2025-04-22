@@ -30,11 +30,11 @@ type Event struct {
 	Objects []*Object `json:"objects" gorm:"serializer:json;type:json"`
 
 	// regions and lines used to create this event
-	Regions []*Region `json:"regions" gorm:"serializer:json;type:json"`
-	Lines   []*Line   `json:"lines" gorm:"serializer:json;type:json"`
+	Regions []*Region `json:"regions,omitempty" gorm:"serializer:json;type:json"`
+	Lines   []*Line   `json:"lines,omitempty" gorm:"serializer:json;type:json"`
 
 	// data may contains any required custom data, like some variable etc
-	Data map[string]any `json:"data" gorm:"serializer:json;type:json"`
+	Data map[string]any `json:"data,omitempty" gorm:"serializer:json;type:json"`
 }
 
 func (Event) TableName() string {
