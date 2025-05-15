@@ -26,11 +26,13 @@ const (
 )
 
 const (
-	FieldHookCameras  = "cameras"
-	FieldHookServices = "services"
-	FieldHookDatabase = "database"
-	FieldHookClasses  = "classes"
-	FieldHookRegions  = "regions"
+	FieldHookCameras     = "cameras" // deprecated, use datasources
+	FieldHookDataSources = "datasources"
+	FieldHookServices    = "services"
+	FieldHookFlows       = "flows"
+	FieldHookDatabase    = "database"
+	FieldHookClasses     = "classes"
+	FieldHookRegions     = "regions"
 )
 
 // FormGroup contains multiple fields and group it by some purpose
