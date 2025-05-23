@@ -4,3 +4,5 @@ github.com/oliamb/cutter v0.2.2 h1:Lfwkya0HHNU1YLnGv2hTkzHfasrSMkgv4Dn+5rmlk3k=
 github.com/oliamb/cutter v0.2.2/go.mod h1:4BenG2/4GuRBDbVm/OPahDVqbrOemzpPiG5mi1iryBU=
 github.com/sg3des/libjpeg v0.1.0 h1:VOkYsbQu3Z4EJtctGao2dDgN0WA7rf66RpzDJEAg7Co=
 github.com/sg3des/libjpeg v0.1.0/go.mod h1:fZmXbNtr/170lZsSzbl6ZGS6Mq+w84snApDUWT/EKwo=
+golang.org/x/image v0.27.0 h1:C8gA4oWU/tKkdCfYT6T2u4faJu3MeNS5O8UPWlPF61w=
+golang.org/x/image v0.27.0/go.mod h1:xbdrClrAUway1MUTEZDq9mz/UpRwYAkFFNUslZtcB+g=

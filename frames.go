@@ -1,17 +1,20 @@
 package flowdata
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
 	"image/color"
+	"image/jpeg"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/oliamb/cutter"
+	"golang.org/x/image/draw"
 )
 
 var DefaultFrameTimeLayout = "2006-01-02_15:04:05"
@@ -239,6 +242,21 @@ func (f *Frame) Crop(bbox BBox) (frame *Frame, err error) {
 	}
 
 	return NewFrameImage(bboxImage)
+}
+
+func (f *Frame) Resize(width int) (*Frame, error) {
+	height := int(float64(width) / float64(f.Info.Width) / float64(f.Info.Height))
+
+	img := image.NewRGBA(image.Rect(0, 0, 720, height))
+
+	draw.NearestNeighbor.Scale(img, img.Rect, f, f.Bounds(), draw.Over, nil)
+
+	var buf bytes.Buffer
+	if err := jpeg.Encode(&buf, img, nil); err != nil {
+		return nil, err
+	}
+
+	return NewFrameImage(img)
 }
 
 type RespContext interface {
