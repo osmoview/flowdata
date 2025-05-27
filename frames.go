@@ -245,7 +245,7 @@ func (f *Frame) Crop(bbox BBox) (frame *Frame, err error) {
 }
 
 func (f *Frame) Resize(width int) (*Frame, error) {
-	height := int(float64(width) / float64(f.Info.Width) / float64(f.Info.Height))
+	height := int(float64(width) / (float64(f.Info.Width) / float64(f.Info.Height)))
 
 	img := image.NewRGBA(image.Rect(0, 0, 720, height))
 
