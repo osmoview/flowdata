@@ -35,6 +35,9 @@ type Event struct {
 
 	// data may contains any required custom data, like some variable etc
 	Data map[string]any `json:"data,omitempty" gorm:"serializer:json;type:json"`
+
+	// archive_file contains path to video file in the video archive
+	ArchiveFile string `json:"archive_file,omitempty" gorm:"-"`
 }
 
 func (Event) TableName() string {
