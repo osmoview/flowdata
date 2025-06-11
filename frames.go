@@ -43,6 +43,9 @@ type Frame struct {
 	// image info
 	Info ImageInfo `json:"info"`
 
+	// datasource contains information about the datasource that released this frame
+	DataSource SourceInfo `json:"datasource,omitzero"`
+
 	// video position in ms
 	Position int `json:"position"`
 
@@ -65,6 +68,17 @@ type ImageInfo struct {
 	// TODO: support different image types
 	// image format, default: jpeg
 	// Format string
+}
+
+// SourceInfo contins some basic information about datasource, flow and other upper entity
+type SourceInfo struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+func (si SourceInfo) IsZero() bool {
+	return si.ID == ""
 }
 
 func NewFrameBytes(data []byte) (*Frame, error) {
