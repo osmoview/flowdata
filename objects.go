@@ -2,6 +2,7 @@ package flowdata
 
 import (
 	"fmt"
+	"reflect"
 )
 
 type Object struct {
@@ -110,7 +111,8 @@ func (o *Object) Merge(obj *Object) {
 	}
 
 	o.Objects = MergeObjects(o.Objects, obj.Objects)
-	o.Items = MergeObjects(o.Items, obj.Objects)
+	o.Objects = MergeObjects(o.Objects, obj.Items)
+	obj.Items = nil
 
 	if obj.ExternalID != "" {
 		o.ExternalID = obj.ExternalID
@@ -159,11 +161,22 @@ func MergeObjects(a, b []*Object) []*Object {
 
 func LookupSimilarObject(list []*Object, o *Object) (*Object, bool) {
 	for _, obj := range list {
+		// if object has id and it is equal with passed obj, then return it, no need another check
 		if obj.ID != "" && obj.ID == o.ID {
 			return obj, true
 		}
+		// do not compare objects with different types
+		if obj.Type != "" && obj.Type != o.Type {
+			continue
+		}
 
-		if obj.BBox.IsValid() && obj.BBox.IsEqual(o.BBox) {
+		// maybe this not need here
+		if reflect.DeepEqual(obj, o) {
+			return obj, true
+		}
+
+		// if type, name and bbox is equal, then this is a similar object
+		if obj.Name == o.Name && obj.BBox.IsEqual(o.BBox) {
 			return obj, true
 		}
 	}
