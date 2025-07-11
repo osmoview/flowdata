@@ -91,7 +91,7 @@ func (r *Request) Do() (*Response, error) {
 	}
 
 	// handle error
-	if resp.StatusCode != 200 {
+	if resp.StatusCode >= 400 {
 		err := &HTTPError{Code: resp.StatusCode, Message: resp.Status}
 		if e := json.Unmarshal(body, err); e != nil {
 			err.Message = string(body)
