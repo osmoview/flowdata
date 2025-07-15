@@ -38,6 +38,8 @@ type Event struct {
 
 	// archive_file contains path to video file in the video archive
 	ArchiveFile string `json:"archive_file,omitempty" gorm:"-"`
+
+	Image string `json:"image,omitempty" gorm:"image"`
 }
 
 func (Event) TableName() string {
