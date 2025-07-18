@@ -26,6 +26,9 @@ type Event struct {
 	// State of the event, like pass,fail,warn, or another
 	State string `json:"state,omitempty"`
 
+	// events group name
+	Group string `json:"group,omitempty"`
+
 	// Objects array
 	Objects []*Object `json:"objects" gorm:"serializer:json;type:json"`
 
