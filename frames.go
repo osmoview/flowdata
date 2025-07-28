@@ -278,14 +278,25 @@ type RespContext interface {
 	Send([]byte) error
 }
 
-func (f *Frame) WriteResponse(c RespContext) error {
-	bytes, err := f.GetBytes()
+type FrameWriteOptions struct {
+	Resize int
+}
+
+func (f *Frame) WriteResponse(c RespContext, opt FrameWriteOptions) (err error) {
+	if opt.Resize > 0 && f.Info.Width > opt.Resize {
+		f, err = f.Resize(opt.Resize)
+		if err != nil {
+			return err
+		}
+	}
+
+	imgBytes, err := f.GetBytes()
 	if err != nil {
 		return err
 	}
 
 	c.Set("Content-Type", ContentTypeImageJPEG)
-	c.Set("Content-Length", strconv.Itoa(len(bytes)))
+	c.Set("Content-Length", strconv.Itoa(len(imgBytes)))
 
 	c.Set("X-DateTime", f.Time.Format(HeadersFrameTimeLayout))
 	c.Set("X-Timestamp_ms", strconv.Itoa(int(f.Time.UnixMilli())))
@@ -293,7 +304,7 @@ func (f *Frame) WriteResponse(c RespContext) error {
 	c.Set("X-Size", fmt.Sprintf("%dx%d", f.Info.Width, f.Info.Height))
 	c.Set("X-ID", f.ID)
 
-	return c.Send(bytes)
+	return c.Send(imgBytes)
 }
 
 func (f *Frame) FormDataFile() (filedata []byte, filename, contentType string, err error) {
