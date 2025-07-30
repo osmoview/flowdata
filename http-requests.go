@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/google/go-querystring/query"
+	"github.com/hetiansu5/urlquery"
 )
 
 type Request struct {
@@ -66,11 +66,11 @@ func (r *Request) Do() (*Response, error) {
 
 	// set query parameters if it exists
 	if len(r.Query) > 0 {
-		q, err := query.Values(r.Query)
+		q, err := urlquery.Marshal(r.Query)
 		if err != nil {
 			return nil, err
 		}
-		req.URL.RawQuery = q.Encode()
+		req.URL.RawQuery = string(q)
 	}
 
 	// set headers

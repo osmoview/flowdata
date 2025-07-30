@@ -12,7 +12,10 @@ type IpInfoResp struct {
 }
 
 func TestRequest(t *testing.T) {
-	resp, err := NewRequest().GET("http://ipinfo.io")
+	req := NewRequest()
+	req.Query = map[string]any{"test": "value"}
+
+	resp, err := req.GET("http://ipinfo.io")
 	if err != nil {
 		t.Fatal(err)
 	}
