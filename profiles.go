@@ -1,9 +1,20 @@
 package flowdata
 
 import (
+	"bytes"
+	"crypto/md5"
+	"fmt"
+	"image"
 	"log"
+	"os"
+	"path/filepath"
 	"time"
+
+	_ "image/jpeg"
+	_ "image/png"
 )
+
+var ProfilesDir = "./data/profiles"
 
 type Profile struct {
 	// uuid
@@ -71,4 +82,33 @@ func (p Profile) VectorMatch(v Vector, max, min float32) (dist float32, iter int
 	}
 
 	return dist, iter, dist > 0
+}
+
+func (p *Profile) buildImageFilename(fn string) string {
+	return filepath.Join(ProfilesDir, p.Type, p.ID, filepath.Base(fn))
+}
+
+func (p *Profile) ReadImage(fn string) ([]byte, error) {
+	return os.ReadFile(p.buildImageFilename(fn))
+}
+
+func (p *Profile) SaveImage(b []byte) (string, error) {
+	fn := p.calcHash(b) + "." + p.resolveExt(b)
+	fp := p.buildImageFilename(fn)
+	os.MkdirAll(filepath.Dir(fp), 0777)
+	return fn, os.WriteFile(fp, b, 0666)
+}
+
+func (p *Profile) calcHash(b []byte) string {
+	h := md5.New()
+	h.Write(b)
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func (p *Profile) resolveExt(b []byte) string {
+	_, format, err := image.DecodeConfig(bytes.NewReader(b))
+	if err != nil {
+		return "jpg"
+	}
+	return format
 }
