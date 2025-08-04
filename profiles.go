@@ -33,12 +33,9 @@ func (p *Profile) TableName() string {
 	return "profiles"
 }
 
-type ProfileImages []ProfileImage
-
 type ProfileImage struct {
 	Filename string `json:"filename"`
 	Vector   Vector `json:"vector,omitempty"`
-	Image    []byte `json:"image,omitempty"`
 }
 
 func (p Profile) VectorMatch(v Vector, max, min float32) (dist float32, iter int, ok bool) {
