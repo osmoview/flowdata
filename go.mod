@@ -4,9 +4,8 @@ go 1.24.1
 
 require (
 	github.com/google/uuid v1.6.0
+	github.com/hetiansu5/urlquery v1.2.7
 	github.com/oliamb/cutter v0.2.2
 	github.com/sg3des/libjpeg v0.1.0
-	golang.org/x/image v0.28.0
+	golang.org/x/image v0.29.0
 )
-
-require github.com/google/go-querystring v1.1.0
