@@ -56,7 +56,7 @@ type Frame struct {
 	BBox BBox `json:"-"`
 
 	// mutex required to avoid double reencoding with simultaneous requests
-	sync.Mutex
+	mutex *sync.Mutex
 }
 
 type ImageInfo struct {
@@ -93,6 +93,7 @@ func NewFrameBytes(data []byte) (*Frame, error) {
 		Time:  time.Now(),
 		Bytes: data,
 		Info:  ImageInfo{Width: info.Width, Height: info.Height, colorModel: info.ColorModel},
+		mutex: &sync.Mutex{},
 	}, nil
 }
 
@@ -104,6 +105,7 @@ func NewFrameImage(img image.Image) (*Frame, error) {
 		Time:  time.Now(),
 		Image: img,
 		Info:  ImageInfo{Width: b.X, Height: b.Y, colorModel: img.ColorModel()},
+		mutex: &sync.Mutex{},
 	}, nil
 }
 
@@ -159,8 +161,10 @@ func (f *Frame) GetSize() (w, h int) {
 
 // GetBytes return slice from `bytes` field, if it exists, overwise encode image to the jpeg
 func (f *Frame) GetBytes() (imgdata []byte, err error) {
-	f.Lock()
-	defer f.Unlock()
+	f.mutex.Lock()
+	defer func() {
+		f.mutex.Unlock()
+	}()
 
 	// if bytes exists then just return it
 	if len(f.Bytes) > 0 {
@@ -193,8 +197,8 @@ func (f *Frame) At(x, y int) color.Color {
 		return f.Image.At(x, y)
 	}
 
-	f.Lock()
-	defer f.Unlock()
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
 
 	// if bytes exists, decode it as jpeg and return color from obtained image.Image
 	if len(f.Bytes) > 0 {
