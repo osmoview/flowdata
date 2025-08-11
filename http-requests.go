@@ -19,7 +19,10 @@ type Request struct {
 }
 
 func NewRequest() *Request {
-	return &Request{}
+	return &Request{
+		Query:   map[string]any{},
+		Headers: map[string]string{},
+	}
 }
 
 func (r *Request) SetBody(body any) *Request {
@@ -33,7 +36,9 @@ func (r *Request) SetQuery(query map[string]any) *Request {
 }
 
 func (r *Request) SetHeaders(headers map[string]string) *Request {
-	r.Headers = headers
+	for k, v := range headers {
+		r.Headers[k] = v
+	}
 	return r
 }
 
@@ -111,6 +116,8 @@ func (r *Request) prepareBody(w io.Writer) error {
 		_, err := w.Write([]byte(v))
 		return err
 	}
+
+	r.SetHeaders(map[string]string{"Content-Type": "application/json"})
 
 	return json.NewEncoder(w).Encode(r.Body)
 }
