@@ -8,6 +8,8 @@ import (
 	"image"
 	"image/color"
 	"image/jpeg"
+	"image/png"
+	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -20,9 +22,29 @@ import (
 var DefaultFrameTimeLayout = "2006-01-02_15:04:05"
 var HeadersFrameTimeLayout = "2006-01-02 15:04:05.999999999 -0700 MST"
 
-var ErrNoFrameData = errors.New("no frame data")
+var (
+	ErrNoFrameData  = errors.New("no frame data")
+	ErrUnknownImage = errors.New("unknown image format")
+)
 
-const ContentTypeImageJPEG = "image/jpeg"
+var (
+	jpegStartSignature = []byte{0xff, 0xd8}
+	jpegEndSignature   = []byte{0xff, 0xd9}
+
+	pngStartSignature = []byte{0x89, 0x50, 0x4E, 0x47}
+)
+
+const (
+	ImageFormatJPEG = "jpeg"
+	ImageFormatPNG  = "png"
+	ImageFormatRAW  = "raw"
+)
+
+const (
+	ContentTypeImageJPEG = "image/jpeg"
+	ContentTypeImagePNG  = "image/png"
+	ContentTypeImageRAW  = "application/octet-stream"
+)
 
 // Frame contains image data and time when that image was received.
 // it can contain only `bytes` or `image` or both of it.
@@ -65,9 +87,8 @@ type ImageInfo struct {
 
 	colorModel color.Model
 
-	// TODO: support different image types
 	// image format, default: jpeg
-	// Format string
+	Format string
 }
 
 // SourceInfo contins some basic information about datasource, flow and other upper entity
@@ -82,19 +103,42 @@ func (si SourceInfo) IsZero() bool {
 }
 
 func NewFrameBytes(data []byte) (*Frame, error) {
-	// TODO: support different image types
-	info, err := DecodeJPEGInfo(data)
-	if err != nil {
-		return nil, err
-	}
-
+	info, err := resolveImageFormat(data)
 	return &Frame{
 		ID:    uuid.NewString(),
 		Time:  time.Now(),
 		Bytes: data,
-		Info:  ImageInfo{Width: info.Width, Height: info.Height, colorModel: info.ColorModel},
+		Info:  info,
 		mutex: &sync.Mutex{},
-	}, nil
+	}, err
+}
+
+func resolveImageFormat(data []byte) (info ImageInfo, err error) {
+	var imgcfg image.Config
+	// jpeg
+	if bytes.HasPrefix(data, jpegStartSignature) && bytes.HasSuffix(data, jpegEndSignature) {
+		info.Format = ImageFormatJPEG
+
+		imgcfg, err = DecodeJPEGInfo(data)
+		if err != nil {
+			return
+		}
+	} else if bytes.HasPrefix(data, pngStartSignature) {
+		info.Format = ImageFormatPNG
+
+		imgcfg, err = png.DecodeConfig(bytes.NewReader(data))
+		if err != nil {
+			return
+		}
+	} else {
+		return info, ErrUnknownImage
+	}
+
+	info.Width = imgcfg.Width
+	info.Height = imgcfg.Height
+	info.colorModel = imgcfg.ColorModel
+
+	return
 }
 
 func NewFrameImage(img image.Image) (*Frame, error) {
@@ -105,6 +149,42 @@ func NewFrameImage(img image.Image) (*Frame, error) {
 		Time:  time.Now(),
 		Image: img,
 		Info:  ImageInfo{Width: b.X, Height: b.Y, colorModel: img.ColorModel()},
+		mutex: &sync.Mutex{},
+	}, nil
+}
+
+func NewFrameRAW(data []byte, width, height int) *Frame {
+	return &Frame{
+		ID:    uuid.NewString(),
+		Time:  time.Now(),
+		Bytes: data,
+		Info:  ImageInfo{Width: width, Height: height, Format: ImageFormatRAW},
+		mutex: &sync.Mutex{},
+	}
+}
+
+func NewFrameRGB(data []byte, width, height int) (*Frame, error) {
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+
+	if pxcap := width * height * 3; pxcap != len(data) {
+		return nil, fmt.Errorf("invalid resolution or data size %d != %d", pxcap, len(data))
+	}
+
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			i := y*width + x
+			img.Pix[i] = data[i]     // R
+			img.Pix[i+1] = data[i+1] // G
+			img.Pix[i+2] = data[i+2] // B
+			img.Pix[i+3] = 255       // A
+		}
+	}
+
+	return &Frame{
+		ID:    uuid.NewString(),
+		Time:  time.Now(),
+		Image: img,
+		Info:  ImageInfo{Width: width, Height: height, colorModel: img.ColorModel()},
 		mutex: &sync.Mutex{},
 	}, nil
 }
@@ -199,14 +279,40 @@ func (f *Frame) At(x, y int) color.Color {
 		return f.Image.At(x, y)
 	}
 
-	if f.mutex != nil {
-		f.mutex.Lock()
-		defer f.mutex.Unlock()
+	// use mutex only for format required decoding
+	if f.Info.Format == ImageFormatJPEG || f.Info.Format == ImageFormatPNG {
+		if f.mutex != nil {
+			f.mutex.Lock()
+			defer f.mutex.Unlock()
+		}
 	}
 
 	// if bytes exists, decode it as jpeg and return color from obtained image.Image
 	if len(f.Bytes) > 0 {
-		f.Image, _ = DecodeJPEG(f.Bytes)
+		var err error
+		switch f.Info.Format {
+		case ImageFormatJPEG:
+			f.Image, err = DecodeJPEG(f.Bytes)
+			if err != nil {
+				log.Println("failed to decode bytes as jpeg", err)
+			}
+
+		case ImageFormatPNG:
+			f.Image, err = png.Decode(bytes.NewReader(f.Bytes))
+			if err != nil {
+				log.Println("failed to decode bytes as png", err)
+			}
+
+		case ImageFormatRAW:
+			i := (y*f.Info.Width + x) * 3
+			if i+3 < len(f.Bytes) {
+				return color.RGBA{R: f.Bytes[i], G: f.Bytes[i+1], B: f.Bytes[i+2], A: 255}
+			}
+
+		default:
+			log.Println("image format not specified")
+		}
+
 		if f.Image != nil {
 			return f.Image.At(x, y)
 		}
@@ -326,4 +432,19 @@ func (f *Frame) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct{ Frame }{*f})
+}
+
+func (f *Frame) ContentType() string {
+	switch f.Info.Format {
+	case ImageFormatJPEG:
+		return ContentTypeImageJPEG
+	case ImageFormatPNG:
+		return ContentTypeImagePNG
+	case ImageFormatRAW:
+		return ContentTypeImageRAW
+
+	// WARN: if format unknown returns as jpeg
+	default:
+		return ContentTypeImageJPEG
+	}
 }

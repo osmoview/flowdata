@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"image"
+	"log"
 	"os"
 	"testing"
 )
@@ -31,6 +32,34 @@ func TestNewFrameBytes(t *testing.T) {
 	frame, err := NewFrameBytes(imageBytes)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	bytes, err := frame.GetBytes()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(bytes) == 0 {
+		t.Error("frame bytes is empty")
+	}
+
+	if _, err := DecodeJPEG(bytes); err != nil {
+		t.Error(err)
+	}
+
+	if frame.ID == "" {
+		t.Error("no id")
+	}
+
+	if frame.Time.IsZero() {
+		t.Error("no time")
+	}
+}
+
+func TestNewFrameBytesRGB(t *testing.T) {
+	frame, err := NewFrameRGB([]byte{255, 255, 255}, 1, 1)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	bytes, err := frame.GetBytes()
