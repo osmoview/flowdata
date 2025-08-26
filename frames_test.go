@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 	"testing"
+
+	"golang.org/x/image/draw"
 )
 
 var (
@@ -153,5 +155,45 @@ func TestFrameMarshalJSON(t *testing.T) {
 
 	if len(f.Bytes) == 0 || !bytes.Equal(f.Bytes, frame.Bytes) {
 		t.Fatal("frame bytes is empty or unequal")
+	}
+}
+
+func BenchmarkResizeNearestNeighbor(b *testing.B) {
+	rect := imageImage.Bounds()
+	height := int(float64(720) / (float64(rect.Max.X) / float64(rect.Max.Y)))
+	img := image.NewRGBA(image.Rect(0, 0, 720, height))
+
+	for i := 0; i < b.N; i++ {
+		draw.NearestNeighbor.Scale(img, img.Rect, imageImage, rect, draw.Over, nil)
+	}
+}
+
+func BenchmarkResizeApproxBiLinear(b *testing.B) {
+	rect := imageImage.Bounds()
+	height := int(float64(720) / (float64(rect.Max.X) / float64(rect.Max.Y)))
+	img := image.NewRGBA(image.Rect(0, 0, 720, height))
+
+	for i := 0; i < b.N; i++ {
+		draw.ApproxBiLinear.Scale(img, img.Rect, imageImage, rect, draw.Over, nil)
+	}
+}
+
+func BenchmarkResizeBiLinear(b *testing.B) {
+	rect := imageImage.Bounds()
+	height := int(float64(720) / (float64(rect.Max.X) / float64(rect.Max.Y)))
+	img := image.NewRGBA(image.Rect(0, 0, 720, height))
+
+	for i := 0; i < b.N; i++ {
+		draw.BiLinear.Scale(img, img.Rect, imageImage, rect, draw.Over, nil)
+	}
+}
+
+func BenchmarkResizeCatmullRom(b *testing.B) {
+	rect := imageImage.Bounds()
+	height := int(float64(720) / (float64(rect.Max.X) / float64(rect.Max.Y)))
+	img := image.NewRGBA(image.Rect(0, 0, 720, height))
+
+	for i := 0; i < b.N; i++ {
+		draw.CatmullRom.Scale(img, img.Rect, imageImage, rect, draw.Over, nil)
 	}
 }

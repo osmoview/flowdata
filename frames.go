@@ -148,7 +148,7 @@ func NewFrameImage(img image.Image) (*Frame, error) {
 		ID:    uuid.NewString(),
 		Time:  time.Now(),
 		Image: img,
-		Info:  ImageInfo{Width: b.X, Height: b.Y, colorModel: img.ColorModel()},
+		Info:  ImageInfo{Width: b.X, Height: b.Y, colorModel: img.ColorModel(), Format: ImageFormatJPEG},
 		mutex: &sync.Mutex{},
 	}, nil
 }
@@ -377,12 +377,20 @@ func (f *Frame) Crop(bbox BBox) (frame *Frame, err error) {
 	return NewFrameImage(bboxImage)
 }
 
+// resize from with save ratio to required width
+// NearestNeighbor - very ugly result
+// ApproxBiLinear - same ugly, and very slow
+// BiLinear - good result and fast
+// BenchmarkResizeNearestNeighbor-32    	     457	   2601221 ns/op
+// BenchmarkResizeApproxBiLinear-32     	     126	   9820116 ns/op
+// BenchmarkResizeBiLinear-32           	     303	   4033383 ns/op
+// BenchmarkResizeCatmullRom-32         	     217	   5418807 ns/op
 func (f *Frame) Resize(width int) (*Frame, error) {
 	height := int(float64(width) / (float64(f.Info.Width) / float64(f.Info.Height)))
 
-	img := image.NewRGBA(image.Rect(0, 0, 720, height))
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
-	draw.NearestNeighbor.Scale(img, img.Rect, f, f.Bounds(), draw.Over, nil)
+	draw.BiLinear.Scale(img, img.Rect, f, f.Bounds(), draw.Over, nil)
 
 	var buf bytes.Buffer
 	if err := jpeg.Encode(&buf, img, nil); err != nil {
