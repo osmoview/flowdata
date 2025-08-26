@@ -310,7 +310,12 @@ func (f *Frame) At(x, y int) color.Color {
 			}
 
 		default:
-			log.Println("image format not specified")
+			// log.Println("image format not specified")
+			// use jpeg decoder if format not specified
+			f.Image, err = DecodeJPEG(f.Bytes)
+			if err != nil {
+				log.Println("failed to decode bytes as jpeg", err)
+			}
 		}
 
 		if f.Image != nil {
