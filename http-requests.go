@@ -75,7 +75,11 @@ func (r *Request) Do() (*Response, error) {
 		if err != nil {
 			return nil, err
 		}
-		req.URL.RawQuery = string(q)
+
+		if req.URL.RawQuery[len(req.URL.RawQuery)-1] != '&' {
+			req.URL.RawQuery += "&"
+		}
+		req.URL.RawQuery += string(q)
 	}
 
 	// set headers

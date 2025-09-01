@@ -1,6 +1,8 @@
 package flowdata
 
-import "testing"
+import (
+	"testing"
+)
 
 type IpInfoResp struct {
 	IP       string
