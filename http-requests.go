@@ -75,10 +75,12 @@ func (r *Request) Do() (*Response, error) {
 		if err != nil {
 			return nil, err
 		}
-
-		if req.URL.RawQuery[len(req.URL.RawQuery)-1] != '&' {
+		if len(req.URL.RawQuery) == 0 {
+			req.URL.RawQuery += "?"
+		} else if req.URL.RawQuery[len(req.URL.RawQuery)-1] != '&' {
 			req.URL.RawQuery += "&"
 		}
+
 		req.URL.RawQuery += string(q)
 	}
 
