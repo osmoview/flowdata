@@ -68,6 +68,9 @@ type Frame struct {
 	// datasource contains information about the datasource that released this frame
 	DataSource SourceInfo `json:"datasource,omitzero"`
 
+	// source where frame incoming, image or video filename, rtsp stream etc
+	Source string `json:"source,omitempty"`
+
 	// video position in ms
 	Position int `json:"position"`
 
@@ -428,6 +431,7 @@ func (f *Frame) WriteResponse(c RespContext, opt FrameWriteOptions) (err error) 
 	c.Set("X-DateTime", f.Time.Format(HeadersFrameTimeLayout))
 	c.Set("X-Timestamp_ms", strconv.Itoa(int(f.Time.UnixMilli())))
 	c.Set("X-Position", strconv.Itoa(f.Position))
+	c.Set("X-Source", f.Source)
 	c.Set("X-Size", fmt.Sprintf("%dx%d", f.Info.Width, f.Info.Height))
 	c.Set("X-ID", f.ID)
 
