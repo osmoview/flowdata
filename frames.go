@@ -78,7 +78,7 @@ type Frame struct {
 	Original *Frame `json:"-"`
 
 	// if image based on the some bbox, it required to restore objects bboxes from the crop imaged to original
-	BBox BBox `json:"-"`
+	BBox BBox `json:"bbox"`
 
 	// mutex required to avoid double reencoding with simultaneous requests
 	mutex *sync.Mutex
