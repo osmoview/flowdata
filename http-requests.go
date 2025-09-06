@@ -91,13 +91,13 @@ func (r *Request) Do() (*Response, error) {
 	// do request
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return &Response{Response: resp}, err
 	}
 
 	// read body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return &Response{resp, body}, err
 	}
 
 	// handle error

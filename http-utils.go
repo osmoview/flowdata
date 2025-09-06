@@ -20,14 +20,36 @@ var ErrUnsupportedVariableType = errors.New("unsupported variable type")
 
 // HTTPError required to handle resonse in the json format, usually it contains message to text field with error description
 type HTTPError struct {
-	Code    int
-	Message string
-	Text    string
+	Text string `json:"text"`
+
+	// code and message required for fiber compatible
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+
+	// detail required for compatible with fast api 400+ responses
+	Detail []FastAPIDetail `json:"detail"`
+}
+
+// FastAPIDetail format,
+// example: {"detail":[{"type":"missing","loc":["body","events"],"msg":"Field required","input":{"Events":[]}}]}
+type FastAPIDetail struct {
+	Type string   `json:"type"`
+	Loc  []string `json:"loc"`
+	Msg  string   `json:"msg"`
 }
 
 func (e *HTTPError) Error() string {
 	if e.Text != "" {
 		return e.Text
+	}
+
+	if len(e.Detail) > 0 {
+		msgs := make([]string, 0, len(e.Detail))
+		for _, d := range e.Detail {
+			msgs = append(msgs, fmt.Sprintf("'%s' %s", strings.Join(d.Loc, "."), strings.ToLower(d.Msg)))
+		}
+
+		return strings.Join(msgs, "\n")
 	}
 
 	return e.Message
