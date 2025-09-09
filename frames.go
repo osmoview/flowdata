@@ -2,6 +2,7 @@ package flowdata
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"image/color"
 	"image/jpeg"
 	"image/png"
+	"io"
 	"log"
 	"strconv"
 	"sync"
@@ -449,6 +451,43 @@ func (f *Frame) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(struct{ Frame }{*f})
+}
+
+func (f *Frame) UnmarshalJSON(b []byte) error {
+	if len(b) <= 3 {
+		return fmt.Errorf("invalid incoming data")
+	}
+
+	// json
+	if b[0] == '{' && b[len(b)-1] == '}' {
+		type frame Frame
+		var frameAlias struct{ frame }
+		if err := json.Unmarshal(b, &frameAlias); err != nil {
+			return err
+		}
+
+		*f = Frame(frameAlias.frame)
+		return nil
+	}
+
+	// trim quotes if it exists
+	if b[0] == '"' && b[len(b)-1] == '"' {
+		b = bytes.Trim(b, `"`)
+	}
+
+	// try to decode bytes from base64 string
+	dec := base64.NewDecoder(base64.StdEncoding, bytes.NewReader(b))
+	if raw, err := io.ReadAll(dec); err == nil {
+		b = raw
+	}
+
+	frame, err := NewFrameBytes(b)
+	if err != nil {
+		return err
+	}
+
+	*f = *frame
+	return nil
 }
 
 func (f *Frame) ContentType() string {

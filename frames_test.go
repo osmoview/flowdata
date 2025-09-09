@@ -158,6 +158,28 @@ func TestFrameMarshalJSON(t *testing.T) {
 	}
 }
 
+func TestFrameUnmarshalJSONBytes(t *testing.T) {
+	b, err := json.Marshal(map[string]any{"frame": imageBytes})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var resp struct {
+		Frame *Frame
+	}
+
+	if err := json.Unmarshal(b, &resp); err != nil {
+		t.Fatal(err)
+	}
+
+	if resp.Frame == nil {
+		t.Fatal("frame is nil")
+	}
+	if resp.Frame.ID == "" {
+		t.Fatal("frame id is empty")
+	}
+}
+
 func BenchmarkResizeNearestNeighbor(b *testing.B) {
 	rect := imageImage.Bounds()
 	height := int(float64(720) / (float64(rect.Max.X) / float64(rect.Max.Y)))
