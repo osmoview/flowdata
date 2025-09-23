@@ -20,26 +20,26 @@ var EventsDir = "./data/events"
 type Event struct {
 	// event model contains ID as UUID, created and updated time
 	ID        string    `json:"id" gorm:"primaryKey;unique"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"created_at" gorm:"index"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"index"`
 
 	// source UUID
-	DataSource string `json:"datasource" gorm:"column:datasource"`
+	DataSource string `json:"datasource" gorm:"index;column:datasource"`
 
 	// flow UUID
-	Flow string `json:"flow"`
+	Flow string `json:"flow" gorm:"index"`
 
 	// Status text message
-	Status string `json:"status"`
+	Status string `json:"status" gorm:"index"`
 
 	// Alert flag, if true then event should popup in the web interface and has some mark in the events archive
-	Alert bool `json:"alert,omitempty"`
+	Alert bool `json:"alert,omitempty" gorm:"index"`
 
 	// State of the event, like pass,fail,warn, or another
-	State string `json:"state,omitempty"`
+	State string `json:"state,omitempty" gorm:"index"`
 
 	// events group name
-	Group string `json:"group,omitempty"`
+	Group string `json:"group,omitempty" gorm:"index"`
 
 	// Objects array
 	Objects []*Object `json:"objects" gorm:"serializer:json;type:json"`
