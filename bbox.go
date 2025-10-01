@@ -10,6 +10,10 @@ func (bbox BBox) IsValid() bool {
 	return bbox[2] > 0 && bbox[3] > 0
 }
 
+func (bbox BBox) IsZero() bool {
+	return !bbox.IsValid()
+}
+
 // Scale bbox by specified value
 func (bbox BBox) Scale(n float32) BBox {
 	kw := bbox[2]*n - bbox[2]
