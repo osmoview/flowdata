@@ -5,8 +5,14 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/hetiansu5/urlquery"
+)
+
+const (
+	ContentTypeJSON      = "application/json"
+	ContentTypeMultipart = "multipart/form-data"
 )
 
 type Request struct {
@@ -51,6 +57,20 @@ func (r *Request) GET(url string) (*Response, error) {
 func (r *Request) POST(url string, body any) (*Response, error) {
 	r.Method = http.MethodPost
 	r.URL = url
+	r.ContentType = ContentTypeJSON
+	if body != nil {
+		r.Body = body
+	}
+	return r.Do()
+}
+
+func (r *Request) Upload(url string, body any) (*Response, error) {
+	r.Method = http.MethodPost
+	r.URL = url
+	r.ContentType = ContentTypeMultipart
+	if body != nil {
+		r.Body = body
+	}
 	return r.Do()
 }
 
@@ -122,8 +142,20 @@ func (r *Request) prepareBody(w io.Writer) error {
 		return err
 	}
 
-	r.SetHeaders(map[string]string{"Content-Type": "application/json"})
+	// prepare body as multipart form data
+	if strings.HasPrefix(r.ContentType, ContentTypeMultipart) {
+		e := NewMultipartEncoder(w)
+		if err := e.Encode(r.Body); err != nil {
+			return err
+		}
+		e.Close()
 
+		r.SetHeaders(map[string]string{"Content-Type": e.FormDataContentType()})
+		return nil
+	}
+
+	// prepare body as json
+	r.SetHeaders(map[string]string{"Content-Type": ContentTypeJSON})
 	return json.NewEncoder(w).Encode(r.Body)
 }
 
