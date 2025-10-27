@@ -11,7 +11,6 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
-	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -284,6 +283,22 @@ func (f *Frame) At(x, y int) color.Color {
 		return f.Image.At(x, y)
 	}
 
+	img, err := f.decodeBytes()
+	if err != nil {
+		return color.Black
+	}
+
+	// assign image to the frame to avoid decoding on each pixel
+	f.Image = img
+
+	return f.Image.At(x, y)
+}
+
+func (f *Frame) decodeBytes() (img image.Image, err error) {
+	if len(f.Bytes) == 0 {
+		return f, errors.New("frame does not contain bytes")
+	}
+
 	// use mutex only for format required decoding
 	if f.Info.Format == ImageFormatJPEG || f.Info.Format == ImageFormatPNG {
 		if f.mutex != nil {
@@ -293,42 +308,20 @@ func (f *Frame) At(x, y int) color.Color {
 	}
 
 	// if bytes exists, decode it as jpeg and return color from obtained image.Image
-	if len(f.Bytes) > 0 {
-		var err error
-		switch f.Info.Format {
-		case ImageFormatJPEG:
-			f.Image, err = DecodeJPEG(f.Bytes)
-			if err != nil {
-				log.Println("failed to decode bytes as jpeg", err)
-			}
 
-		case ImageFormatPNG:
-			f.Image, err = png.Decode(bytes.NewReader(f.Bytes))
-			if err != nil {
-				log.Println("failed to decode bytes as png", err)
-			}
-
-		case ImageFormatRAW:
-			i := (y*f.Info.Width + x) * 3
-			if i+3 < len(f.Bytes) {
-				return color.RGBA{R: f.Bytes[i], G: f.Bytes[i+1], B: f.Bytes[i+2], A: 255}
-			}
-
-		default:
-			// log.Println("image format not specified")
-			// use jpeg decoder if format not specified
-			f.Image, err = DecodeJPEG(f.Bytes)
-			if err != nil {
-				log.Println("failed to decode bytes as jpeg", err)
-			}
-		}
-
-		if f.Image != nil {
-			return f.Image.At(x, y)
-		}
+	switch f.Info.Format {
+	case ImageFormatJPEG:
+		return DecodeJPEG(f.Bytes)
+	case ImageFormatPNG:
+		return png.Decode(bytes.NewReader(f.Bytes))
+	case ImageFormatRAW:
+		// impossible to decode RAW images
+		return f, nil
+	default:
+		// log.Println("image format not specified")
+		// use jpeg decoder if format not specified
+		return DecodeJPEG(f.Bytes)
 	}
-
-	return color.Black
 }
 
 // ColorModel resolved from the image config
@@ -345,6 +338,15 @@ type SubImager interface {
 }
 
 func (f *Frame) Crop(bbox BBox) (frame *Frame, err error) {
+	defer func() {
+		if frame != nil {
+			frame.Time = f.Time
+			frame.Source = f.Source
+			frame.Position = f.Position
+			frame.DataSource = f.DataSource
+		}
+	}()
+
 	width, height := f.GetSize()
 
 	x := int(bbox[0] * float32(width))
@@ -391,6 +393,15 @@ func (f *Frame) Crop(bbox BBox) (frame *Frame, err error) {
 // BenchmarkResizeBiLinear-32           	     303	   4033383 ns/op
 // BenchmarkResizeCatmullRom-32         	     217	   5418807 ns/op
 func (f *Frame) Resize(width int) (*Frame, error) {
+	// if no image, then check bytes is exists and it can be encoded to the image
+	// sometimes it is not possible, like JPEG images without Huffman table
+	if f.Image == nil {
+		if _, err := f.decodeBytes(); err != nil {
+			// if not possible to resize, returns original frame
+			return f, err
+		}
+	}
+
 	height := int(float64(width) / (float64(f.Info.Width) / float64(f.Info.Height)))
 
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
@@ -398,7 +409,7 @@ func (f *Frame) Resize(width int) (*Frame, error) {
 	draw.BiLinear.Scale(img, img.Rect, f, f.Bounds(), draw.Over, nil)
 
 	var buf bytes.Buffer
-	if err := jpeg.Encode(&buf, img, nil); err != nil {
+	if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: 90}); err != nil {
 		return nil, err
 	}
 
@@ -416,9 +427,8 @@ type FrameWriteOptions struct {
 
 func (f *Frame) WriteResponse(c RespContext, opt FrameWriteOptions) (err error) {
 	if opt.Resize > 0 && f.Info.Width > opt.Resize {
-		f, err = f.Resize(opt.Resize)
-		if err != nil {
-			return err
+		if resizedFrame, err := f.Resize(opt.Resize); err == nil {
+			f = resizedFrame
 		}
 	}
 
