@@ -67,8 +67,8 @@ func (bbox BBox) Bottom() [2]float32 {
 // Top returns center top point
 func (bbox BBox) Top() [2]float32 {
 	return [2]float32{
-		bbox[0],
-		bbox[1] + bbox[3]/2,
+		bbox[0] + bbox[2]/2,
+		bbox[1],
 	}
 }
 
