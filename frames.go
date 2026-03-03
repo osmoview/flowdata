@@ -20,8 +20,10 @@ import (
 	"golang.org/x/image/draw"
 )
 
-var DefaultFrameTimeLayout = "2006-01-02_15:04:05"
-var HeadersFrameTimeLayout = "2006-01-02 15:04:05.999999999 -0700 MST"
+var (
+	DefaultFrameTimeLayout = "2006-01-02_15:04:05"
+	HeadersFrameTimeLayout = "2006-01-02 15:04:05.999999999 -0700 MST"
+)
 
 var (
 	ErrNoFrameData  = errors.New("no frame data")
@@ -200,6 +202,20 @@ func (f *Frame) GetImage() image.Image {
 	}
 
 	return f
+}
+
+func (f *Frame) GetRGBA() *image.RGBA {
+	img := f.GetImage()
+
+	if rgba, ok := img.(*image.RGBA); ok {
+		return rgba
+	}
+
+	b := img.Bounds()
+	rgba := image.NewRGBA(image.Rect(0, 0, b.Max.X, b.Max.Y))
+	draw.Draw(rgba, rgba.Bounds(), img, b.Min, draw.Src)
+
+	return rgba
 }
 
 func (f *Frame) String() string {
