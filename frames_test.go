@@ -36,6 +36,13 @@ func TestNewFrameBytes(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	b := frame.Bounds()
+
+	dst := image.NewRGBA(image.Rect(0, 0, b.Max.X, b.Max.Y))
+
+	// draw.BiLinear.Scale(dst, dst.Rect, img, img.Bounds(), draw.Over, nil)
+	draw.Draw(dst, dst.Bounds(), frame, b.Min, draw.Src)
+
 	bytes, err := frame.GetBytes()
 	if err != nil {
 		t.Fatal(err)
