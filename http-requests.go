@@ -22,6 +22,7 @@ type Request struct {
 	Headers     map[string]string
 	Body        any
 	ContentType string
+	Stream      bool
 }
 
 func NewRequest() *Request {
@@ -114,6 +115,14 @@ func (r *Request) Do() (*Response, error) {
 		return &Response{Response: resp}, err
 	}
 
+	// do not read and decode body for stream responses
+	if r.Stream {
+		if resp.StatusCode >= 400 {
+			err = &HTTPError{Code: resp.StatusCode, Message: resp.Status}
+		}
+		return &Response{Response: resp}, err
+	}
+
 	// read body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -129,7 +138,7 @@ func (r *Request) Do() (*Response, error) {
 		return nil, err
 	}
 
-	return &Response{resp, body}, nil
+	return &Response{resp, body}, err
 }
 
 func (r *Request) prepareBody(w io.Writer) error {
