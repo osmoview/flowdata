@@ -11,36 +11,39 @@ import (
 )
 
 type File struct {
-	ID        string `json:"id"` // uuid
-	Filename  string `json:"filename"`
-	Type      string `json:"type"`
-	Extension string `json:"extension"`
-	Size      uint64 `json:"size"` // size in bytes
-	Data      []byte `json:"data,omitempty"`
+	ID    string `json:"id"` // uuid
+	Name  string `json:"name"`
+	Type  string `json:"type"`
+	Ext   string `json:"ext"`
+	Size  uint64 `json:"size"` // size in bytes
+	Bytes []byte `json:"bytes,omitempty"`
 
-	CreatedAt time.Time `json:"created_at"`
+	ReadAt time.Time `json:"read_at"`
 }
 
-func (f *File) GetData() []byte {
-	return f.Data
+func (f *File) GetBytes() []byte {
+	return f.Bytes
 }
 
-func (f *File) GetFileName() string {
-	return f.Filename
+func (f *File) GetName() string {
+	return f.Name
 }
 
-func NewFileFromData(data []byte) *File {
-	mt := mimetype.Detect(data)
+func (f *File) FormDataFile() (filedata []byte, filename, contentType string, err error) {
+	return f.GetBytes(), f.GetName(), f.Type, nil
+}
+
+func NewFileFromBytes(bytes []byte) *File {
+	mt := mimetype.Detect(bytes)
 	id := uuid.New()
 
 	return &File{
-		ID:        id.String(),
-		Filename:  id.String() + mt.Extension(),
-		Type:      mt.String(),
-		Extension: mt.Extension(),
-		Size:      uint64(len(data)),
-		Data:      data,
-		CreatedAt: time.Now().UTC(),
+		ID:     id.String(),
+		Type:   mt.String(),
+		Ext:    mt.Extension(),
+		Size:   uint64(len(bytes)),
+		Bytes:  bytes,
+		ReadAt: time.Now().UTC(),
 	}
 }
 
@@ -56,8 +59,8 @@ func NewFileFromPath(path string) (*File, error) {
 	if err != nil {
 		return nil, err
 	}
-	file := NewFileFromData(data)
-	file.Filename = filepath.Base(path)
+	file := NewFileFromBytes(data)
+	file.Name = filepath.Base(path)
 
 	return file, nil
 }
