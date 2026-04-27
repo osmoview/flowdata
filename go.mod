@@ -9,5 +9,5 @@ require (
 	github.com/hetiansu5/urlquery v1.2.7
 	github.com/oliamb/cutter v0.2.2
 	github.com/sg3des/libjpeg v0.1.0
-	golang.org/x/image v0.36.0
+	golang.org/x/image v0.39.0
 )
