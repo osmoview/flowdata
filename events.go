@@ -23,6 +23,9 @@ type Event struct {
 	CreatedAt time.Time `json:"created_at" gorm:"index"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"index"`
 
+	// event level, 0: default, 1: notice, 2: important, -1: debug, etc
+	Level int `json:"level" gorm:"index"`
+
 	// source UUID
 	DataSource string `json:"datasource" gorm:"index;column:datasource"`
 
