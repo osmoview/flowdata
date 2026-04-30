@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/textproto"
-	"nodes/gopath/src/github.com/gofiber/fiber/v3/log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -225,7 +225,7 @@ func (e *MultipartEncoder) isFileCompatible(v any) (file *File, ok bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			ok = false
-			log.Error("failed to convert struct or map to the flowdata.File", r)
+			log.Println("failed to convert struct or map to the flowdata.File", r)
 			return
 		}
 	}()
