@@ -1,6 +1,7 @@
 package flowdata
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -213,8 +214,10 @@ func (e *MultipartEncoder) isSliceOfFormDataFile(v any) (reflect.Value, bool) {
 		return rv, ok
 	}
 
-	if _, ok := e.isFileCompatible(rv); ok {
-		return rv, ok
+	if rv.Len() > 0 {
+		if _, ok := e.isFileCompatible(rv.Index(0)); ok {
+			return rv, ok
+		}
 	}
 
 	return reflect.Value{}, false
@@ -249,6 +252,40 @@ func (e *MultipartEncoder) isFileCompatible(v any) (file *File, ok bool) {
 		return NewFile(fbytes.Bytes(), fname.String()), true
 	}
 
+	if rv.Kind() == reflect.Interface {
+		m, ok := rv.Interface().(map[string]any)
+		if !ok {
+			return file, false
+		}
+
+		var fbytes []byte
+		var fname string
+
+		for k, v := range m {
+			if strings.EqualFold(k, "bytes") {
+				if b, ok := v.([]byte); ok {
+					fbytes = b
+				}
+				if s, ok := v.(string); ok {
+					if b, err := base64.RawStdEncoding.DecodeString(s); err == nil {
+						fbytes = b
+					} else {
+						fbytes = []byte(s)
+					}
+				}
+			}
+			if strings.EqualFold(k, "name") {
+				if s, ok := v.(string); ok {
+					fname = s
+				}
+			}
+		}
+
+		if len(fbytes) > 0 && len(fname) > 0 {
+			return NewFile(fbytes, fname), true
+		}
+	}
+
 	// for the map check map keys exists
 	if rv.Kind() == reflect.Map {
 		var fbytes reflect.Value
@@ -269,5 +306,5 @@ func (e *MultipartEncoder) isFileCompatible(v any) (file *File, ok bool) {
 		return NewFile(fbytes.Bytes(), fname.String()), true
 	}
 
-	return
+	return nil, false
 }
