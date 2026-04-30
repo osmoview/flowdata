@@ -12,7 +12,7 @@ import (
 
 const (
 	ContentTypeJSON      = "application/json"
-	ContentTypeMultipart = "multipart/form-data"
+	ContentTypeMultipart = "multipart"
 )
 
 type Request struct {

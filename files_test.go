@@ -8,7 +8,7 @@ import (
 
 func TestNewFileFromBytes(t *testing.T) {
 	data := []byte("hello world")
-	f := NewFileFromBytes(data)
+	f := NewFile(data, "hello world.txt")
 
 	if f.ID == "" {
 		t.Error("empty ID")
@@ -35,7 +35,7 @@ func TestNewFileFromPath(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	f, err := NewFileFromPath(path)
+	f, err := ReadFile(path)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +51,7 @@ func TestNewFileFromPath(t *testing.T) {
 }
 
 func TestFileFormDataFile(t *testing.T) {
-	f := NewFileFromBytes([]byte("abc"))
+	f := NewFile([]byte("abc"), "abc.txt")
 	f.Name = "x.bin"
 
 	data, name, ct, err := f.FormDataFile()
@@ -70,7 +70,7 @@ func TestFileFormDataFile(t *testing.T) {
 }
 
 func TestFile(t *testing.T) {
-	f, err := NewFileFromPath("testdata/logo.jpg")
+	f, err := ReadFile("testdata/logo.jpg")
 	if err != nil {
 		t.Fatal(err)
 	}

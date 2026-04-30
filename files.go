@@ -1,9 +1,9 @@
 package flowdata
 
 import (
-	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gabriel-vasile/mimetype"
@@ -21,6 +21,40 @@ type File struct {
 	ReadAt time.Time `json:"read_at"`
 }
 
+// NewFile returns `File` structure with passed bytes and filename
+// it tries to resolve the file type(mime) by inspect bytes
+func NewFile(bytes []byte, name string) *File {
+	// try to resolve mime type from the bytes
+	mt := mimetype.Detect(bytes)
+
+	// resolve extenstion from the file name,
+	// if failed, resolve from the detected mime type
+	ext := strings.ToLower(filepath.Ext(name))
+	if ext == "" {
+		ext = mt.Extension()
+	}
+
+	return &File{
+		ID:     uuid.NewString(),
+		Name:   name,
+		Type:   mt.String(),
+		Ext:    ext,
+		Size:   uint64(len(bytes)),
+		Bytes:  bytes,
+		ReadAt: time.Now().UTC(),
+	}
+}
+
+// ReadFile return the `File` structure with bytes readed by specified file path
+func ReadFile(path string) (*File, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewFile(data, filepath.Base(path)), nil
+}
+
 func (f *File) GetBytes() []byte {
 	return f.Bytes
 }
@@ -29,38 +63,7 @@ func (f *File) GetName() string {
 	return f.Name
 }
 
+// FromDataFile required to match to FormDataFile interface to write file as part of multipart http request
 func (f *File) FormDataFile() (filedata []byte, filename, contentType string, err error) {
 	return f.GetBytes(), f.GetName(), f.Type, nil
-}
-
-func NewFileFromBytes(bytes []byte) *File {
-	mt := mimetype.Detect(bytes)
-	id := uuid.New()
-
-	return &File{
-		ID:     id.String(),
-		Type:   mt.String(),
-		Ext:    mt.Extension(),
-		Size:   uint64(len(bytes)),
-		Bytes:  bytes,
-		ReadAt: time.Now().UTC(),
-	}
-}
-
-// NewFileFromPath return file data on path
-func NewFileFromPath(path string) (*File, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	data, err := io.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-	file := NewFileFromBytes(data)
-	file.Name = filepath.Base(path)
-
-	return file, nil
 }
