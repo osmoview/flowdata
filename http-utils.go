@@ -209,12 +209,11 @@ func (e *MultipartEncoder) isSliceOfFormDataFile(v any) (reflect.Value, bool) {
 
 	// WARN: maybe required additional checks
 	elem := reflect.New(rv.Type().Elem()).Elem()
-
 	if _, ok := elem.Interface().(FormDataFile); ok {
 		return rv, ok
 	}
 
-	if _, ok := e.isFileCompatible(elem); ok {
+	if _, ok := e.isFileCompatible(rv); ok {
 		return rv, ok
 	}
 
@@ -230,7 +229,11 @@ func (e *MultipartEncoder) isFileCompatible(v any) (file *File, ok bool) {
 		}
 	}()
 
-	rv := reflect.ValueOf(v)
+	var rv reflect.Value
+	if rv, ok = v.(reflect.Value); !ok {
+		rv = reflect.ValueOf(v)
+	}
+
 	for rv.Kind() == reflect.Ptr {
 		rv = rv.Elem()
 	}
