@@ -7,6 +7,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/textproto"
+	"nodes/gopath/src/github.com/gofiber/fiber/v3/log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -90,8 +91,19 @@ func (e *MultipartEncoder) Encode(v any) error {
 		if rv, ok := e.isSliceOfFormDataFile(v); ok {
 			for i := 0; i < rv.Len(); i++ {
 				v := rv.Index(i)
-				if err := e.WriteFile(k, v.Interface().(FormDataFile)); err != nil {
-					return err
+
+				// if slice elem is match to FormDataFile interface
+				if f, ok := v.Interface().(FormDataFile); ok {
+					if err := e.WriteFile(k, f); err != nil {
+						return err
+					}
+				}
+
+				// if slice elem is convertable to the flowdata.File
+				if f, ok := e.isFileCompatible(v); ok {
+					if err := e.WriteFile(k, f); err != nil {
+						return err
+					}
 				}
 			}
 			continue
@@ -126,6 +138,10 @@ func (e *MultipartEncoder) Encode(v any) error {
 
 		// write part as json
 		default:
+			if file, ok := e.isFileCompatible(f); ok {
+				return e.WriteFile(k, file)
+			}
+
 			data, err := json.Marshal(f)
 			if err != nil {
 				return err
@@ -194,6 +210,61 @@ func (e *MultipartEncoder) isSliceOfFormDataFile(v any) (reflect.Value, bool) {
 	// WARN: maybe required additional checks
 	elem := reflect.New(rv.Type().Elem()).Elem()
 
-	_, ok := elem.Interface().(FormDataFile)
-	return rv, ok
+	if _, ok := elem.Interface().(FormDataFile); ok {
+		return rv, ok
+	}
+
+	if _, ok := e.isFileCompatible(elem); ok {
+		return rv, ok
+	}
+
+	return reflect.Value{}, false
+}
+
+func (e *MultipartEncoder) isFileCompatible(v any) (file *File, ok bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			ok = false
+			log.Error("failed to convert struct or map to the flowdata.File", r)
+			return
+		}
+	}()
+
+	rv := reflect.ValueOf(v)
+	for rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+
+	// for structure check fields exists
+	if rv.Kind() == reflect.Struct {
+		fbytes := rv.FieldByName("Bytes")
+		fname := rv.FieldByName("Name")
+		if !fbytes.IsValid() || !fname.IsValid() {
+			return nil, false
+		}
+
+		return NewFile(fbytes.Bytes(), fname.String()), true
+	}
+
+	// for the map check map keys exists
+	if rv.Kind() == reflect.Map {
+		var fbytes reflect.Value
+		var fname reflect.Value
+
+		for _, key := range rv.MapKeys() {
+			if key.Kind() != reflect.String {
+				continue
+			}
+
+			if strings.EqualFold(key.String(), "bytes") {
+				fbytes = rv.MapIndex(key)
+			} else if strings.EqualFold(key.String(), "name") {
+				fname = rv.MapIndex(key)
+			}
+		}
+
+		return NewFile(fbytes.Bytes(), fname.String()), true
+	}
+
+	return
 }

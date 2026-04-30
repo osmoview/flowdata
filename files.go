@@ -1,6 +1,11 @@
 package flowdata
 
 import (
+	"bytes"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -55,15 +60,41 @@ func ReadFile(path string) (*File, error) {
 	return NewFile(data, filepath.Base(path)), nil
 }
 
-func (f *File) GetBytes() []byte {
-	return f.Bytes
-}
-
-func (f *File) GetName() string {
-	return f.Name
-}
-
 // FromDataFile required to match to FormDataFile interface to write file as part of multipart http request
 func (f *File) FormDataFile() (filedata []byte, filename, contentType string, err error) {
-	return f.GetBytes(), f.GetName(), f.Type, nil
+	return f.Bytes, f.Name, f.Type, nil
+}
+
+func (f *File) UnmarshalJSON(b []byte) error {
+	if len(b) <= 3 {
+		return fmt.Errorf("invalid incoming data")
+	}
+
+	// json
+	if b[0] == '{' && b[len(b)-1] == '}' {
+		type file File
+		var fileAlias struct{ file }
+		if err := json.Unmarshal(b, &fileAlias); err != nil {
+			return err
+		}
+
+		*f = File(fileAlias.file)
+		return nil
+	}
+
+	// trim quotes if it exists
+	if b[0] == '"' && b[len(b)-1] == '"' {
+		b = bytes.Trim(b, `"`)
+	}
+
+	// try to decode bytes from base64 string
+	dec := base64.NewDecoder(base64.StdEncoding, bytes.NewReader(b))
+	if raw, err := io.ReadAll(dec); err == nil {
+		b = raw
+	}
+
+	file := NewFile(b, "")
+
+	*f = *file
+	return nil
 }
