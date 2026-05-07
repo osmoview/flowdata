@@ -33,6 +33,7 @@ const (
 	FieldHookDatabase    = "database"
 	FieldHookClasses     = "classes"
 	FieldHookRegions     = "regions"
+	FieldHookNodes       = "nodes"
 )
 
 // FormGroup contains multiple fields and group it by some purpose
