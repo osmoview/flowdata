@@ -303,7 +303,9 @@ func (e *MultipartEncoder) isFileCompatible(v any) (file *File, ok bool) {
 			}
 		}
 
-		return NewFile(fbytes.Bytes(), fname.String()), true
+		if fbytes.IsValid() && fname.IsValid() {
+			return NewFile(fbytes.Bytes(), fname.String()), true
+		}
 	}
 
 	return nil, false
