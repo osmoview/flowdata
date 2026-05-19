@@ -140,6 +140,40 @@ func TestFrameCrop(t *testing.T) {
 	os.WriteFile("testdata/crop.jpg", cropBytes, 0666)
 }
 
+func TestFrameCrop2(t *testing.T) {
+	log.SetFlags(log.Lshortfile)
+
+	frame, err := NewFrameImage(imageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	crop, err := frame.Crop(BBox{0.35, 0.8, 0.3, 0.2})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cropBytes, err := crop.GetBytes()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	os.WriteFile("testdata/crop.jpg", cropBytes, 0666)
+
+	// check crop from crop
+	crop, err = crop.Crop(BBox{0.2, 0.2, 0.2, 0.2})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cropBytes, err = crop.GetBytes()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	os.WriteFile("testdata/crop2.jpg", cropBytes, 0666)
+}
+
 func TestFrameMarshalJSON(t *testing.T) {
 	frame, err := NewFrameImage(imageImage)
 	if err != nil {

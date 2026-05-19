@@ -349,10 +349,6 @@ func (f *Frame) ColorModel() color.Model {
 	return f.Info.colorModel
 }
 
-type SubImager interface {
-	SubImage(r image.Rectangle) image.Image
-}
-
 func (f *Frame) Crop(bbox BBox) (frame *Frame, err error) {
 	defer func() {
 		if frame != nil {
@@ -377,17 +373,7 @@ func (f *Frame) Crop(bbox BBox) (frame *Frame, err error) {
 		}
 	}()
 
-	rect := image.Rect(x, y, x+w, y+h)
-
-	frameImage := f.GetImage()
-
-	// if image compatible with SubImager interface
-	sub, ok := frameImage.(SubImager)
-	if ok {
-		return NewFrameImage(sub.SubImage(rect))
-	}
-
-	bboxImage, err := cutter.Crop(frameImage, cutter.Config{
+	bboxImage, err := cutter.Crop(f.GetImage(), cutter.Config{
 		Anchor: image.Point{X: x, Y: y},
 		Width:  w,
 		Height: h,
