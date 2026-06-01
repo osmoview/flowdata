@@ -255,17 +255,21 @@ func (f *Frame) TimestampMilli() int64 {
 
 // GetSize returns image resolution
 func (f *Frame) GetSize() (w, h int) {
-	if f.Info.Width == 0 || f.Info.Height == 0 {
-		img := f.GetImage()
-		max := img.Bounds().Max
-		min := img.Bounds().Min
-		return max.X - min.X, max.Y - min.Y
-	}
-
 	if f.Image != nil {
 		max := f.Image.Bounds().Max
 		min := f.Image.Bounds().Min
 		return max.X - min.X, max.Y - min.Y
+	}
+
+	if f.Info.Width != 0 && f.Info.Height != 0 {
+		return f.Info.Width, f.Info.Height
+	}
+
+	if f.Bytes != nil {
+		info, err := resolveImageFormat(f.Bytes)
+		if err == nil {
+			f.Info = info
+		}
 	}
 
 	return f.Info.Width, f.Info.Height
@@ -428,10 +432,11 @@ func (f *Frame) Resize(width int) (*Frame, error) {
 		}
 	}
 
-	height := int(float64(width) / (float64(f.Info.Width) / float64(f.Info.Height)))
+	w, h := f.GetSize()
+
+	height := int(float64(width) / (float64(w) / float64(h)))
 
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
-
 	draw.BiLinear.Scale(img, img.Rect, f, f.Bounds(), draw.Over, nil)
 
 	var buf bytes.Buffer
