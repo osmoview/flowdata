@@ -147,13 +147,19 @@ func resolveImageFormat(data []byte) (info ImageInfo, err error) {
 }
 
 func NewFrameImage(img image.Image) (*Frame, error) {
-	b := img.Bounds().Max
+	max := img.Bounds().Max
+	min := img.Bounds().Min
 
 	return &Frame{
 		ID:    uuid.NewString(),
 		Time:  time.Now(),
 		Image: img,
-		Info:  ImageInfo{Width: b.X, Height: b.Y, colorModel: img.ColorModel(), Format: ImageFormatJPEG},
+		Info: ImageInfo{
+			Width:      max.X - min.X,
+			Height:     max.Y - min.Y,
+			colorModel: img.ColorModel(),
+			Format:     ImageFormatJPEG,
+		},
 		mutex: &sync.Mutex{},
 	}, nil
 }
@@ -249,6 +255,13 @@ func (f *Frame) TimestampMilli() int64 {
 
 // GetSize returns image resolution
 func (f *Frame) GetSize() (w, h int) {
+	if f.Info.Width == 0 || f.Info.Height == 0 {
+		img := f.GetImage()
+		max := img.Bounds().Max
+		min := img.Bounds().Min
+		return max.X - min.X, max.Y - min.Y
+	}
+
 	if f.Image != nil {
 		max := f.Image.Bounds().Max
 		min := f.Image.Bounds().Min
