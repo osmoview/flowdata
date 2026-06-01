@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/oliamb/cutter"
 	"golang.org/x/image/draw"
 )
 
@@ -356,34 +355,46 @@ func (f *Frame) Crop(bbox BBox) (frame *Frame, err error) {
 			frame.Source = f.Source
 			frame.Position = f.Position
 			frame.DataSource = f.DataSource
-		}
-	}()
-
-	width, height := f.GetSize()
-
-	x := int(bbox[0] * float32(width))
-	y := int(bbox[1] * float32(height))
-	w := int(bbox[2] * float32(width))
-	h := int(bbox[3] * float32(height))
-
-	defer func() {
-		if frame != nil {
 			frame.Original = f
 			frame.BBox = bbox
 		}
 	}()
 
-	bboxImage, err := cutter.Crop(f.GetImage(), cutter.Config{
-		Anchor: image.Point{X: x, Y: y},
-		Width:  w,
-		Height: h,
-		// Options: cutter.Copy,
-	})
-	if err != nil {
-		return nil, err
+	width, height := f.GetSize()
+
+	x := max(int(bbox[0]*float32(width)), 0)
+	y := max(int(bbox[1]*float32(height)), 0)
+	w := int(bbox[2] * float32(width))
+	h := int(bbox[3] * float32(height))
+
+	// fix coordinates
+	if x+w > width {
+		w = width - x
+	}
+	if y+h > height {
+		h = height - y
 	}
 
-	return NewFrameImage(bboxImage)
+	if w <= 0 || h <= 0 {
+		return nil, fmt.Errorf("invalid crop: width: %d, height: %d", w, h)
+	}
+
+	// prepare new image and crop
+	bboxImg := image.NewRGBA(image.Rect(0, 0, w, h))
+	draw.Draw(bboxImg, bboxImg.Bounds(), f.GetImage(), image.Point{X: x, Y: y}, draw.Src)
+
+	// convert cropped frame with cropped image
+	frame, err = NewFrameImage(bboxImg)
+	if err != nil {
+		return frame, err
+	}
+
+	// // check crop is valid?
+	// if _, err := frame.GetBytes(); err != nil {
+	// 	return frame, fmt.Errorf("failed to crop: %v", err)
+	// }
+
+	return frame, nil
 }
 
 // resize from with save ratio to required width
