@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,6 +19,7 @@ import (
 type File struct {
 	ID    string `json:"id"` // uuid
 	Name  string `json:"name"`
+	Path  string `json:"path"`
 	Type  string `json:"type"`
 	Ext   string `json:"ext"`
 	Size  uint64 `json:"size"` // size in bytes
@@ -28,26 +30,33 @@ type File struct {
 
 // NewFile returns `File` structure with passed bytes and filename
 // it tries to resolve the file type(mime) by inspect bytes
-func NewFile(bytes []byte, name string) *File {
-	// try to resolve mime type from the bytes
-	mt := mimetype.Detect(bytes)
-
-	// resolve extenstion from the file name,
-	// if failed, resolve from the detected mime type
-	ext := strings.ToLower(filepath.Ext(name))
-	if ext == "" {
-		ext = mt.Extension()
-	}
-
-	return &File{
+func NewFile(bytes []byte, fp string) *File {
+	file := &File{
 		ID:     uuid.NewString(),
-		Name:   name,
-		Type:   mt.String(),
-		Ext:    ext,
+		Name:   filepath.Base(fp),
+		Path:   fp,
+		Ext:    strings.ToLower(filepath.Ext(fp)),
 		Size:   uint64(len(bytes)),
 		Bytes:  bytes,
 		ReadAt: time.Now().UTC(),
 	}
+
+	// if extension specified, resolve mime type from it
+	if file.Ext != "" {
+		file.Type = mime.TypeByExtension(file.Ext)
+	}
+
+	// if failed to resolve file type from extension,
+	// try to obtain it from bytes
+	if file.Type == "" {
+		mt := mimetype.Detect(bytes)
+		file.Type = mt.String()
+		if file.Ext == "" {
+			file.Ext = mt.Extension()
+		}
+	}
+
+	return file
 }
 
 // ReadFile return the `File` structure with bytes readed by specified file path
@@ -57,7 +66,7 @@ func ReadFile(path string) (*File, error) {
 		return nil, err
 	}
 
-	return NewFile(data, filepath.Base(path)), nil
+	return NewFile(data, path), nil
 }
 
 // FromDataFile required to match to FormDataFile interface to write file as part of multipart http request
