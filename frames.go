@@ -121,28 +121,28 @@ func NewFrameBytes(data []byte) (*Frame, error) {
 
 func resolveImageFormat(data []byte) (info ImageInfo, err error) {
 	var imgcfg image.Config
+
+	defer func() {
+		info.Width = imgcfg.Width
+		info.Height = imgcfg.Height
+		info.colorModel = imgcfg.ColorModel
+	}()
+
 	// jpeg
-	if bytes.HasPrefix(data, jpegStartSignature) && bytes.HasSuffix(data, jpegEndSignature) {
+	if bytes.HasPrefix(data, jpegStartSignature) {
 		info.Format = ImageFormatJPEG
-
 		imgcfg, err = DecodeJPEGInfo(data)
-		if err != nil {
-			return
-		}
-	} else if bytes.HasPrefix(data, pngStartSignature) {
-		info.Format = ImageFormatPNG
-
-		imgcfg, err = png.DecodeConfig(bytes.NewReader(data))
-		if err != nil {
-			return
-		}
-	} else {
-		return info, ErrUnknownImage
+		return
 	}
 
-	info.Width = imgcfg.Width
-	info.Height = imgcfg.Height
-	info.colorModel = imgcfg.ColorModel
+	// png
+	if bytes.HasPrefix(data, pngStartSignature) {
+		info.Format = ImageFormatPNG
+		imgcfg, err = png.DecodeConfig(bytes.NewReader(data))
+		return
+	}
+
+	err = ErrUnknownImage
 
 	return
 }
