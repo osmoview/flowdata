@@ -93,7 +93,7 @@ type ImageInfo struct {
 	colorModel color.Model
 
 	// image format, default: jpeg
-	Format string
+	Format string `json:"format"`
 }
 
 // SourceInfo contins some basic information about datasource, flow and other upper entity
