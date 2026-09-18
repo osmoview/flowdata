@@ -28,6 +28,9 @@ type Profile struct {
 	// profiles type id
 	Type string `json:"type"`
 
+	// virtual relative path of the profile
+	Path string `json:"path"`
+
 	// some external ID, like car number, some code etc
 	ExternalID string `json:"external_id,omitempty"`
 
