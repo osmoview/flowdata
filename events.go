@@ -26,6 +26,9 @@ type Event struct {
 	// event level, 0: default, 1: notice, 2: important, -1: debug, etc
 	Level int `json:"level" gorm:"index"`
 
+	// events type id
+	Type string `json:"type" gorm:"index"`
+
 	// source UUID
 	DataSource string `json:"datasource" gorm:"index;column:datasource"`
 
